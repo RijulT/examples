@@ -7,6 +7,7 @@
 running `conda env list`
 * Activate conda environment `source activate jupyter3.6`
 * Other option if you have docker is to get this [docker image](https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-scipy-notebook) and run it and upload the notebook. (you probably want to mount folder of jupyter-example-notebooks so that you do not lose changes)
+* if your conda enviroment does not have jupyter installed already use `pip install jupyter` to install it.
 * Run jupyter notebook by running `jupyter notebook`
 * It will launch browser with current directy listing, select ExplanationConfidenceLRSExample.ipynb notebook and launch it.
 * Specify api_host, account_id and token

@@ -1,15 +1,9 @@
+The MIT License Copyright © 2010-2019 Falkonry.com Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software. THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Setup Jupyter
-* Check out this repo and cd to jupyter-example-notebooks folder.
-* You can install jupyter using conda. First install [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
-* Install jupyter in a conda enviroment, easiest way is to get enviroment file in this repo and run below command
-`conda env create -f environment-jupyter.yml`. This will create a conda environment name jupyter3.6, you can see it listed by 
-running `conda env list`
-* Activate conda environment `source activate jupyter3.6`
-* Other option if you have docker is to get this [docker image](https://jupyter-docker-stacks.readthedocs.io/en/latest/using/selecting.html#jupyter-scipy-notebook) and run it and upload the notebook. (you probably want to mount folder of jupyter-example-notebooks so that you do not lose changes)
-* if your conda enviroment does not have jupyter installed already use `pip install jupyter` to install it.
+
+# Launch Falkonry's example Jupyter Notebook
+* We assume that the end-user has latest version of Jupyter notebook installed and running on their machines.
+* Check out this repo and `cd jupyter-example-notebooks` folder.
 * Run jupyter notebook by running `jupyter notebook`
 * It will launch browser with current directy listing, select ExplanationConfidenceLRSExample.ipynb notebook and launch it.
-* Specify api_host, account_id and token
-* Run through each cell to see the output.
 

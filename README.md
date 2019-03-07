@@ -10,8 +10,4 @@ THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR I
 
 # Falkonry's integration examples
 
-Integrational examples to connect with Falkonry easily.
-
-* PubNub (Deprecated)
-* Application development (Deprecated)
-* Realtime dashboard
+Integration examples to connect with Falkonry easily.

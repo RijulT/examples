@@ -1,9 +1,0 @@
-.center-modal {
-    position: fixed;
-    top: 20%;
-    left: 30%;
-    z-index: 1050;
-    width: 60%;
-    height: 90%;
-    margin-left: -10%;
-}

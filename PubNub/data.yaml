@@ -1,8 +1,0 @@
-mqtt_broker: "<MQTT PROKER HOST>"
-mqtt_port: "<MQTT PROKER PORT>" #use default: 1883
-mqtt_topic: "<MQTT Topic Here>"
-pubnub_publish_key: "<PUBNUB PUBLISH NAME>"
-pubnub_subscribe_key: "<PUBNUB SUBSCRIPTION KEY>"
-pubnub_channel: "<PUBNUB CHANNEL>"
-auth_token: "<FALKONRY'S AUTH TOKEN>" #get from Fallkonry Service UI
-pipeline_id: "<FALKONRY'S PIPELINE ID>" #get from Fallkonry Service UI

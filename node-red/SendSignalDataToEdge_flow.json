@@ -1,0 +1,1142 @@
+[
+    {
+        "id": "f184dfb3.62b17",
+        "type": "tab",
+        "label": "Send Signal Data",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "f73f3532.9566e8",
+        "type": "link out",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "links": [
+            "4d300c5b.7ef194"
+        ],
+        "x": 1015,
+        "y": 131,
+        "wires": []
+    },
+    {
+        "id": "f1d204b0.528ab8",
+        "type": "inject",
+        "z": "f184dfb3.62b17",
+        "name": "Init",
+        "topic": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.5",
+        "x": 110,
+        "y": 480,
+        "wires": [
+            [
+                "1d896b41.611e75"
+            ]
+        ]
+    },
+    {
+        "id": "5ab9e5f6.619abc",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "PrepReq",
+        "func": "var pl = msg.payload\nspec = flow.get(\"ingestSpec\")\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer [Token]\",\n       \"Accept\":\"application/json\"\n    },\n    method:'POST',\n    url: flow.get(\"edgeEndPoint\") +\n        \"/api/1.1/ingestjobs/\", \n    payload:{\"jobType\":\"INGEST\",...spec},\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 397,
+        "y": 480,
+        "wires": [
+            [
+                "8706f944.a62fa8"
+            ]
+        ]
+    },
+    {
+        "id": "8706f944.a62fa8",
+        "type": "http request",
+        "z": "f184dfb3.62b17",
+        "name": "http",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "proxy": "",
+        "x": 527,
+        "y": 480,
+        "wires": [
+            [
+                "fcf80b5d.71dc78"
+            ]
+        ]
+    },
+    {
+        "id": "fcf80b5d.71dc78",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "Get Endpoint",
+        "func": "flow.set(\n    \"ingestURL\",\n    msg.jobURL = msg.payload.jobIngestionUrl\n    )\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 690,
+        "y": 480,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f478fb58.7b3528",
+        "type": "inject",
+        "z": "f184dfb3.62b17",
+        "name": "Send Data",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 120,
+        "y": 717,
+        "wires": [
+            [
+                "a4ab6196.d3d85"
+            ]
+        ]
+    },
+    {
+        "id": "2203f454.7ba20c",
+        "type": "file in",
+        "z": "f184dfb3.62b17",
+        "name": "file",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "x": 570,
+        "y": 717,
+        "wires": [
+            [
+                "b8f7ed91.56ac2"
+            ]
+        ]
+    },
+    {
+        "id": "b8f7ed91.56ac2",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "split lines",
+        "func": "var lines = msg.payload.split(\"\\n\");\nvar header = lines[0];\nvar data = lines.slice(1);\nfor (var l in data) {\n    if (flow.get(\"state\")===\"STOP\") {\n        break\n    }\n    node.send({payload:header+\"\\n\"+data[l]});\n}\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 700,
+        "y": 717,
+        "wires": [
+            [
+                "8139e974.b27a88"
+            ]
+        ]
+    },
+    {
+        "id": "789a5e17.8ad37",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "Build Request",
+        "func": "var pl = msg.payload\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer [token]\",\n       \"content-type\":\"text/csv\"\n    },\n    method:'POST',\n    url: flow.get(\"ingestURL\"),\n    payload:pl,\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 180,
+        "y": 826,
+        "wires": [
+            [
+                "2788121a.8efa1e"
+            ]
+        ]
+    },
+    {
+        "id": "ff52cad0.70d8c8",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "Set Filename",
+        "func": "flow.set (\"state\", \"RUN\");\nmsg.filename = flow.get(\"signalDataFolder\")+\n\"signals.csv\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 430,
+        "y": 717,
+        "wires": [
+            [
+                "2203f454.7ba20c"
+            ]
+        ]
+    },
+    {
+        "id": "2788121a.8efa1e",
+        "type": "http request",
+        "z": "f184dfb3.62b17",
+        "name": "http",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "proxy": "",
+        "x": 350,
+        "y": 826,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a4ab6196.d3d85",
+        "type": "ui_button",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "group": "e5ab6ba0.ba4f38",
+        "order": 3,
+        "width": "6",
+        "height": "1",
+        "passthru": true,
+        "label": "Send Data",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 270,
+        "y": 717,
+        "wires": [
+            [
+                "ff52cad0.70d8c8"
+            ]
+        ]
+    },
+    {
+        "id": "f55c8ac3.426ef8",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "format",
+        "func": "var m = {};\nvar sig = [];\nm.labels = [];\nm.data = [];\nvar pl = msg.payload;\nm.series = Object.keys(pl[0]);\nfor (var s in m.series) {\n    sig = []\n    for (var j in pl) {\n        sig[j] = pl[j][m.series[s]];\n        m.labels[j]= '';\n    }\n    m.data[s] = sig;\n}\nreturn {payload:[m]};\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 710,
+        "y": 942,
+        "wires": [
+            [
+                "ba7444f2.327c78"
+            ]
+        ]
+    },
+    {
+        "id": "ba7444f2.327c78",
+        "type": "ui_chart",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "group": "e5ab6ba0.ba4f38",
+        "order": 1,
+        "width": "18",
+        "height": "10",
+        "label": "Signal Values",
+        "chartType": "line",
+        "legend": "true",
+        "xformat": "HH:mm:ss",
+        "interpolate": "linear",
+        "nodata": "",
+        "dot": false,
+        "ymin": "",
+        "ymax": "",
+        "removeOlder": 1,
+        "removeOlderPoints": "20",
+        "removeOlderUnit": "1",
+        "cutout": 0,
+        "useOneColor": false,
+        "colors": [
+            "#1f77b4",
+            "#aec7e8",
+            "#ff7f0e",
+            "#2ca02c",
+            "#98df8a",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "useOldStyle": false,
+        "outputs": 1,
+        "x": 870,
+        "y": 942,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7da3537c.469f4c",
+        "type": "csv",
+        "z": "f184dfb3.62b17",
+        "name": "signal data",
+        "sep": ",",
+        "hdrin": true,
+        "hdrout": "",
+        "multi": "one",
+        "ret": "\\n",
+        "temp": "",
+        "skip": "0",
+        "x": 170,
+        "y": 942,
+        "wires": [
+            [
+                "a99c0dc9.9b435"
+            ]
+        ]
+    },
+    {
+        "id": "3f9ab26.148a84e",
+        "type": "batch",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "mode": "count",
+        "count": "10",
+        "overlap": "9",
+        "interval": 10,
+        "allowEmptySequence": false,
+        "topics": [],
+        "x": 470,
+        "y": 942,
+        "wires": [
+            [
+                "200323f0.087e7c"
+            ]
+        ]
+    },
+    {
+        "id": "200323f0.087e7c",
+        "type": "join",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "mode": "auto",
+        "build": "string",
+        "property": "payload",
+        "propertyType": "msg",
+        "key": "topic",
+        "joiner": "\\n",
+        "joinerType": "str",
+        "accumulate": "false",
+        "timeout": "",
+        "count": "",
+        "reduceRight": false,
+        "x": 590,
+        "y": 942,
+        "wires": [
+            [
+                "f55c8ac3.426ef8"
+            ]
+        ]
+    },
+    {
+        "id": "8139e974.b27a88",
+        "type": "delay",
+        "z": "f184dfb3.62b17",
+        "name": "throttle",
+        "pauseType": "rate",
+        "timeout": "0.1",
+        "timeoutUnits": "seconds",
+        "rate": "1",
+        "nbRateUnits": "0.05",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 860,
+        "y": 640,
+        "wires": [
+            [
+                "4bbc7607.826628"
+            ]
+        ]
+    },
+    {
+        "id": "2e0929a.c661cd6",
+        "type": "link out",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "links": [
+            "a3f48e6b.7e483"
+        ],
+        "x": 355,
+        "y": 520,
+        "wires": []
+    },
+    {
+        "id": "a3f48e6b.7e483",
+        "type": "link in",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "links": [
+            "2e0929a.c661cd6"
+        ],
+        "x": 735,
+        "y": 882,
+        "wires": [
+            [
+                "ba7444f2.327c78"
+            ]
+        ]
+    },
+    {
+        "id": "fc71f30f.77815",
+        "type": "ui_button",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "group": "e5ab6ba0.ba4f38",
+        "order": 4,
+        "width": "6",
+        "height": "1",
+        "passthru": true,
+        "label": "Abort",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 250,
+        "y": 597,
+        "wires": [
+            [
+                "9d747525.4757a8"
+            ]
+        ]
+    },
+    {
+        "id": "9d747525.4757a8",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "STOP and reset Throttle",
+        "func": "flow.set(\"state\",\"STOP\")\nmsg.reset = true;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 450,
+        "y": 597,
+        "wires": [
+            [
+                "8139e974.b27a88"
+            ]
+        ]
+    },
+    {
+        "id": "a4690101.4a882",
+        "type": "link in",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "links": [
+            "4bbc7607.826628"
+        ],
+        "x": 55,
+        "y": 826,
+        "wires": [
+            [
+                "789a5e17.8ad37",
+                "7da3537c.469f4c"
+            ]
+        ]
+    },
+    {
+        "id": "4bbc7607.826628",
+        "type": "link out",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "links": [
+            "a4690101.4a882"
+        ],
+        "x": 975,
+        "y": 717,
+        "wires": []
+    },
+    {
+        "id": "9b4c1a77.dac0a8",
+        "type": "comment",
+        "z": "f184dfb3.62b17",
+        "name": "Send Time Value to Edge Device",
+        "info": "",
+        "x": 170,
+        "y": 786,
+        "wires": []
+    },
+    {
+        "id": "31d8c601.28215a",
+        "type": "comment",
+        "z": "f184dfb3.62b17",
+        "name": "Display Trace of Signal Data",
+        "info": "",
+        "x": 160,
+        "y": 893,
+        "wires": []
+    },
+    {
+        "id": "29c853db.cf71bc",
+        "type": "comment",
+        "z": "f184dfb3.62b17",
+        "name": "Create Sequence of Data Messages From File",
+        "info": "",
+        "x": 210,
+        "y": 675,
+        "wires": []
+    },
+    {
+        "id": "763327e0.a9d018",
+        "type": "comment",
+        "z": "f184dfb3.62b17",
+        "name": "Stop Sending Data",
+        "info": "",
+        "x": 130,
+        "y": 557,
+        "wires": []
+    },
+    {
+        "id": "94e5a1fe.9bc99",
+        "type": "comment",
+        "z": "f184dfb3.62b17",
+        "name": "Get Ingestion Endpoint",
+        "info": "",
+        "x": 140,
+        "y": 434,
+        "wires": []
+    },
+    {
+        "id": "1d896b41.611e75",
+        "type": "ui_button",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "group": "e5ab6ba0.ba4f38",
+        "order": 2,
+        "width": "6",
+        "height": "1",
+        "passthru": true,
+        "label": "Initialize",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "",
+        "x": 240,
+        "y": 480,
+        "wires": [
+            [
+                "2e0929a.c661cd6",
+                "5ab9e5f6.619abc"
+            ]
+        ]
+    },
+    {
+        "id": "c32966b8.9f6038",
+        "type": "inject",
+        "z": "f184dfb3.62b17",
+        "name": "Init",
+        "topic": "",
+        "payload": "[]",
+        "payloadType": "json",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": "0.5",
+        "x": 110,
+        "y": 597,
+        "wires": [
+            [
+                "fc71f30f.77815"
+            ]
+        ]
+    },
+    {
+        "id": "321ef692.9dbb5a",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "Settings",
+        "func": "flow.set (\"edgeEndPoint\", \"http://localhost:9004\")  //192.168.88.88\nflow.set (\n    \"signalDataFolder\", \n    \"/Users/ogrego/Falkonry/edgedemo/1machineData/\"\n    )\nflow.set (\"state\", \"STOP\")\nreturn {payload:[]};\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 280,
+        "y": 131,
+        "wires": [
+            [
+                "f1cbe33.317562",
+                "2a5ba61f.73286a",
+                "f73f3532.9566e8"
+            ]
+        ]
+    },
+    {
+        "id": "40d29b2e.c08634",
+        "type": "inject",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 130,
+        "y": 131,
+        "wires": [
+            [
+                "321ef692.9dbb5a"
+            ]
+        ]
+    },
+    {
+        "id": "3c35349e.b68b6c",
+        "type": "ui_text_input",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "label": "Edge End Point",
+        "tooltip": "",
+        "group": "9a965cd5.6ab9e",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "",
+        "x": 680,
+        "y": 94,
+        "wires": [
+            [
+                "30efd42c.20cd7c"
+            ]
+        ]
+    },
+    {
+        "id": "2a09c8ae.b2a8f8",
+        "type": "ui_text_input",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "label": "Signal Data Folder",
+        "tooltip": "",
+        "group": "9a965cd5.6ab9e",
+        "order": 5,
+        "width": "10",
+        "height": "2",
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "",
+        "x": 690,
+        "y": 154,
+        "wires": [
+            [
+                "c39f01b2.935ea"
+            ]
+        ]
+    },
+    {
+        "id": "f1cbe33.317562",
+        "type": "change",
+        "z": "f184dfb3.62b17",
+        "name": "default host",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "edgeEndPoint",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 490,
+        "y": 94,
+        "wires": [
+            [
+                "3c35349e.b68b6c"
+            ]
+        ]
+    },
+    {
+        "id": "2a5ba61f.73286a",
+        "type": "change",
+        "z": "f184dfb3.62b17",
+        "name": "default folder",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "signalDataFolder",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 490,
+        "y": 154,
+        "wires": [
+            [
+                "2a09c8ae.b2a8f8"
+            ]
+        ]
+    },
+    {
+        "id": "30efd42c.20cd7c",
+        "type": "change",
+        "z": "f184dfb3.62b17",
+        "name": "update host",
+        "rules": [
+            {
+                "t": "set",
+                "p": "edgeEndPoint",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 870,
+        "y": 94,
+        "wires": [
+            [
+                "f73f3532.9566e8"
+            ]
+        ]
+    },
+    {
+        "id": "c39f01b2.935ea",
+        "type": "change",
+        "z": "f184dfb3.62b17",
+        "name": "update folder",
+        "rules": [
+            {
+                "t": "set",
+                "p": "signalDataFolder",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 880,
+        "y": 154,
+        "wires": [
+            [
+                "f73f3532.9566e8"
+            ]
+        ]
+    },
+    {
+        "id": "a99c0dc9.9b435",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "remove keys",
+        "func": "var pl = msg.payload;\nvar spec = flow.get(\"ingestSpec\");\ndelete pl[spec.timeIdentifier];\ndelete pl[spec.entityIdentifier];\ndelete pl[spec.batchIdentifier];\nreturn {payload:pl};\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 330,
+        "y": 942,
+        "wires": [
+            [
+                "3f9ab26.148a84e"
+            ]
+        ]
+    },
+    {
+        "id": "b33de99.654f118",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "TestReq",
+        "func": "var pl = msg.payload\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer [Token]\",\n       \"Accept\":\"application/json\"\n    },\n    method:'GET',\n    url: flow.get(\"edgeEndPoint\") + \"/api/1.1/\"\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 220,
+        "y": 213,
+        "wires": [
+            [
+                "acb10bb2.069da8"
+            ]
+        ]
+    },
+    {
+        "id": "acb10bb2.069da8",
+        "type": "http request",
+        "z": "f184dfb3.62b17",
+        "name": "http",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "proxy": "",
+        "x": 350,
+        "y": 213,
+        "wires": [
+            [
+                "cc0e5d57.6a327"
+            ]
+        ]
+    },
+    {
+        "id": "cc0e5d57.6a327",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "test Edge Analyzer",
+        "func": "statusCode = msg.statusCode;\npl = \"NOT Found\"\nif (statusCode == 200) {\n    pl = \"Found\"\n}\nreturn {payload:pl}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 510,
+        "y": 213,
+        "wires": [
+            [
+                "c1e58312.86cb9"
+            ]
+        ]
+    },
+    {
+        "id": "cb386aa8.02bd18",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "signal file",
+        "func": "msg.payload = flow.get(\"signalDataFolder\")+\n\"signals.csv\"\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 220,
+        "y": 365,
+        "wires": [
+            [
+                "b5f647e9.251c68"
+            ]
+        ]
+    },
+    {
+        "id": "b5f647e9.251c68",
+        "type": "exec",
+        "z": "f184dfb3.62b17",
+        "command": "head -n 1 ",
+        "addpay": true,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "oldrc": false,
+        "name": "",
+        "x": 360,
+        "y": 365,
+        "wires": [
+            [
+                "87665c88.f130a"
+            ],
+            [
+                "87665c88.f130a"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "910f7069.beccf",
+        "type": "file in",
+        "z": "f184dfb3.62b17",
+        "name": "spec file",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "x": 360,
+        "y": 261,
+        "wires": [
+            [
+                "9b0d78b1.2f77c8"
+            ]
+        ]
+    },
+    {
+        "id": "b90cc3eb.330c5",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "spec file",
+        "func": "msg.filename = flow.get(\"signalDataFolder\")+\n\"spec.json\"\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 220,
+        "y": 261,
+        "wires": [
+            [
+                "910f7069.beccf"
+            ]
+        ]
+    },
+    {
+        "id": "eeddc4b0.50b9b8",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "extract spec",
+        "func": "var pl = msg.payload\nif (pl.spec.batchIdentifier === \"\") {\n    delete pl.spec.batchIdentifier\n}\nflow.set(\"ingestSpec\",pl.spec)\nflow.set(\"dataDescription\", pl.title)\nreturn {payload:pl.title};",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 650,
+        "y": 261,
+        "wires": [
+            [
+                "7808e401.feb53c"
+            ]
+        ]
+    },
+    {
+        "id": "9b0d78b1.2f77c8",
+        "type": "json",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 510,
+        "y": 261,
+        "wires": [
+            [
+                "eeddc4b0.50b9b8"
+            ]
+        ]
+    },
+    {
+        "id": "c1e58312.86cb9",
+        "type": "ui_text",
+        "z": "f184dfb3.62b17",
+        "group": "ac34f333.d49dc",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Edge Analyzer",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 700,
+        "y": 213,
+        "wires": []
+    },
+    {
+        "id": "7808e401.feb53c",
+        "type": "ui_text",
+        "z": "f184dfb3.62b17",
+        "group": "ac34f333.d49dc",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Spec File",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 920,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "5db4313a.77afc",
+        "type": "ui_text",
+        "z": "f184dfb3.62b17",
+        "group": "ac34f333.d49dc",
+        "order": 5,
+        "width": "8",
+        "height": "2",
+        "name": "",
+        "label": "signals.csv header",
+        "format": "<font size=\"1\">{{msg.payload}}</font>",
+        "layout": "col-center",
+        "x": 670,
+        "y": 365,
+        "wires": []
+    },
+    {
+        "id": "4d300c5b.7ef194",
+        "type": "link in",
+        "z": "f184dfb3.62b17",
+        "name": "",
+        "links": [
+            "f73f3532.9566e8"
+        ],
+        "x": 55,
+        "y": 284,
+        "wires": [
+            [
+                "b33de99.654f118",
+                "b90cc3eb.330c5",
+                "cb386aa8.02bd18"
+            ]
+        ]
+    },
+    {
+        "id": "87665c88.f130a",
+        "type": "function",
+        "z": "f184dfb3.62b17",
+        "name": "split",
+        "func": "var pl = msg.payload\npl = pl.split(\",\").join(\", \")\nreturn {payload:pl};",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 510,
+        "y": 365,
+        "wires": [
+            [
+                "5db4313a.77afc"
+            ]
+        ]
+    },
+    {
+        "id": "60c15e88.76274",
+        "type": "ui_text",
+        "z": "f184dfb3.62b17",
+        "group": "9a965cd5.6ab9e",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "Edge Info",
+        "label": "Enter the host:port where the Edge Analyzer Model is running",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 120,
+        "y": 74,
+        "wires": []
+    },
+    {
+        "id": "9a1b0448.f3c588",
+        "type": "ui_text",
+        "z": "f184dfb3.62b17",
+        "group": "9a965cd5.6ab9e",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "Folder Info",
+        "label": "Enter the absolute path to the folder containing the spec.js file and signals.csv file",
+        "format": "{{msg.payload}}",
+        "layout": "row-spread",
+        "x": 270,
+        "y": 74,
+        "wires": []
+    },
+    {
+        "id": "48b35bbf.76a154",
+        "type": "catch",
+        "z": "f184dfb3.62b17",
+        "name": "Not Found",
+        "scope": [
+            "910f7069.beccf"
+        ],
+        "uncaught": false,
+        "x": 360,
+        "y": 313,
+        "wires": [
+            [
+                "2991d8cd.c6f7e8"
+            ]
+        ]
+    },
+    {
+        "id": "2991d8cd.c6f7e8",
+        "type": "change",
+        "z": "f184dfb3.62b17",
+        "name": "error",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "File Not Found",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 770,
+        "y": 313,
+        "wires": [
+            [
+                "7808e401.feb53c"
+            ]
+        ]
+    },
+    {
+        "id": "818257c3.178a58",
+        "type": "comment",
+        "z": "f184dfb3.62b17",
+        "name": "Settings for Sending Signal Data",
+        "info": "",
+        "x": 170,
+        "y": 34,
+        "wires": []
+    },
+    {
+        "id": "e5ab6ba0.ba4f38",
+        "type": "ui_group",
+        "z": "",
+        "name": "Chart",
+        "tab": "63c58f22.64a75",
+        "order": 1,
+        "disp": false,
+        "width": "18",
+        "collapse": false
+    },
+    {
+        "id": "9a965cd5.6ab9e",
+        "type": "ui_group",
+        "z": "",
+        "name": "Settings",
+        "tab": "70f3a6cb.045098",
+        "order": 1,
+        "disp": true,
+        "width": "10",
+        "collapse": false
+    },
+    {
+        "id": "ac34f333.d49dc",
+        "type": "ui_group",
+        "z": "",
+        "name": "Diagnostics",
+        "tab": "70f3a6cb.045098",
+        "order": 2,
+        "disp": true,
+        "width": "8",
+        "collapse": false
+    },
+    {
+        "id": "63c58f22.64a75",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Send Data",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "70f3a6cb.045098",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Settings - Send Data",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    }
+]

@@ -1,0 +1,486 @@
+[
+    {
+        "id": "4442b0e9.f5b94",
+        "type": "tab",
+        "label": "Utilities",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "32ffa396.32e51c",
+        "type": "ui_button",
+        "z": "4442b0e9.f5b94",
+        "name": "",
+        "group": "d7230494.a7f4c8",
+        "order": 3,
+        "width": "9",
+        "height": "1",
+        "passthru": false,
+        "label": "Restart Edge Analyzer",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 140,
+        "y": 180,
+        "wires": [
+            [
+                "a1e8c6f8.1d9038"
+            ]
+        ]
+    },
+    {
+        "id": "e8c8b4c6.974108",
+        "type": "ui_button",
+        "z": "4442b0e9.f5b94",
+        "name": "",
+        "group": "d7230494.a7f4c8",
+        "order": 8,
+        "width": "9",
+        "height": "1",
+        "passthru": false,
+        "label": "Exit Browser",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 110,
+        "y": 380,
+        "wires": [
+            [
+                "7de6946a.0f9f2c"
+            ]
+        ]
+    },
+    {
+        "id": "a1e8c6f8.1d9038",
+        "type": "exec",
+        "z": "4442b0e9.f5b94",
+        "command": "/Users/ogrego/Falkonry/edgedemo/run.sh",
+        "addpay": false,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "oldrc": false,
+        "name": "run.sh",
+        "x": 310,
+        "y": 180,
+        "wires": [
+            [
+                "60ecd9c3.34d9a8"
+            ],
+            [
+                "37dd0308.ac485c"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "7de6946a.0f9f2c",
+        "type": "exec",
+        "z": "4442b0e9.f5b94",
+        "command": "pkill chromium",
+        "addpay": true,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "oldrc": false,
+        "name": "",
+        "x": 340,
+        "y": 380,
+        "wires": [
+            [
+                "9078b4c8.823248"
+            ],
+            [
+                "34f71604.adf72a"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "218431fb.f296be",
+        "type": "ui_button",
+        "z": "4442b0e9.f5b94",
+        "name": "Change Button",
+        "group": "d7230494.a7f4c8",
+        "order": 5,
+        "width": "1",
+        "height": "1",
+        "passthru": false,
+        "label": "<font size=\"1\">Change</font>",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 120,
+        "y": 300,
+        "wires": [
+            [
+                "ff6697f0.ece9c8"
+            ]
+        ]
+    },
+    {
+        "id": "2f74e8e6.fd51a8",
+        "type": "exec",
+        "z": "4442b0e9.f5b94",
+        "command": "/Users/ogrego/Falkonry/edgedemo/change_model.sh",
+        "addpay": true,
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "oldrc": false,
+        "name": "change_model.sh",
+        "x": 430,
+        "y": 300,
+        "wires": [
+            [
+                "1781d022.2dbcc"
+            ],
+            [
+                "240351ff.115e5e"
+            ],
+            []
+        ]
+    },
+    {
+        "id": "fa3cc650.3b1908",
+        "type": "ui_text_input",
+        "z": "4442b0e9.f5b94",
+        "name": "Image File",
+        "label": "Enter path to new Edge Analyzer tar file",
+        "tooltip": "",
+        "group": "d7230494.a7f4c8",
+        "order": 6,
+        "width": "8",
+        "height": "1",
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "",
+        "x": 110,
+        "y": 240,
+        "wires": [
+            [
+                "32b7baba.9d9d86"
+            ]
+        ]
+    },
+    {
+        "id": "32b7baba.9d9d86",
+        "type": "function",
+        "z": "4442b0e9.f5b94",
+        "name": "Capture path to image",
+        "func": "flow.set(\"imageFilePath\", msg.payload)\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 340,
+        "y": 240,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ff6697f0.ece9c8",
+        "type": "change",
+        "z": "4442b0e9.f5b94",
+        "name": "path",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "imageFilePath",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 270,
+        "y": 300,
+        "wires": [
+            [
+                "2f74e8e6.fd51a8"
+            ]
+        ]
+    },
+    {
+        "id": "64b3025d.c3c59c",
+        "type": "ui_button",
+        "z": "4442b0e9.f5b94",
+        "name": "",
+        "group": "d7230494.a7f4c8",
+        "order": 1,
+        "width": "9",
+        "height": "1",
+        "passthru": false,
+        "label": "Check Edge Analyzer",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 140,
+        "y": 120,
+        "wires": [
+            [
+                "54924ae1.86cb84"
+            ]
+        ]
+    },
+    {
+        "id": "54924ae1.86cb84",
+        "type": "function",
+        "z": "4442b0e9.f5b94",
+        "name": "TestReq",
+        "func": "var pl = msg.payload\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer [Token]\",\n       \"Accept\":\"application/json\"\n    },\n    method:'GET',\n    url: \"http://localhost:9004/api/1.1/\"\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 320,
+        "y": 120,
+        "wires": [
+            [
+                "ffe9e857.0dd2b8"
+            ]
+        ]
+    },
+    {
+        "id": "ffe9e857.0dd2b8",
+        "type": "http request",
+        "z": "4442b0e9.f5b94",
+        "name": "http",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "proxy": "",
+        "x": 450,
+        "y": 120,
+        "wires": [
+            [
+                "513ef7f5.38c288"
+            ]
+        ]
+    },
+    {
+        "id": "513ef7f5.38c288",
+        "type": "function",
+        "z": "4442b0e9.f5b94",
+        "name": "test Edge Analyzer",
+        "func": "statusCode = msg.statusCode;\npl = \"Not Running\"\nif (statusCode == 200) {\n    pl = \"Running\"\n}\nreturn {payload:pl}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 610,
+        "y": 120,
+        "wires": [
+            [
+                "7be03faa.f30ea"
+            ]
+        ]
+    },
+    {
+        "id": "7be03faa.f30ea",
+        "type": "ui_text",
+        "z": "4442b0e9.f5b94",
+        "group": "d7230494.a7f4c8",
+        "order": 2,
+        "width": "3",
+        "height": "1",
+        "name": "Running?",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 940,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "c5c71278.32d73",
+        "type": "inject",
+        "z": "4442b0e9.f5b94",
+        "name": "",
+        "topic": "",
+        "payload": "---",
+        "payloadType": "str",
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 690,
+        "y": 40,
+        "wires": [
+            [
+                "7be03faa.f30ea",
+                "240351ff.115e5e",
+                "37dd0308.ac485c",
+                "34f71604.adf72a"
+            ]
+        ]
+    },
+    {
+        "id": "240351ff.115e5e",
+        "type": "ui_text",
+        "z": "4442b0e9.f5b94",
+        "group": "d7230494.a7f4c8",
+        "order": 7,
+        "width": "3",
+        "height": "1",
+        "name": "Changed?",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 950,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "37dd0308.ac485c",
+        "type": "ui_text",
+        "z": "4442b0e9.f5b94",
+        "group": "d7230494.a7f4c8",
+        "order": 4,
+        "width": "3",
+        "height": "1",
+        "name": "Restarted?",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 950,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "1781d022.2dbcc",
+        "type": "change",
+        "z": "4442b0e9.f5b94",
+        "name": "done",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Done",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 670,
+        "y": 280,
+        "wires": [
+            [
+                "240351ff.115e5e"
+            ]
+        ]
+    },
+    {
+        "id": "60ecd9c3.34d9a8",
+        "type": "change",
+        "z": "4442b0e9.f5b94",
+        "name": "done",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Done",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 670,
+        "y": 160,
+        "wires": [
+            [
+                "37dd0308.ac485c"
+            ]
+        ]
+    },
+    {
+        "id": "34f71604.adf72a",
+        "type": "ui_text",
+        "z": "4442b0e9.f5b94",
+        "group": "d7230494.a7f4c8",
+        "order": 9,
+        "width": "3",
+        "height": "1",
+        "name": "Exited?",
+        "label": "",
+        "format": "{{msg.payload}}",
+        "layout": "col-center",
+        "x": 940,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "9078b4c8.823248",
+        "type": "change",
+        "z": "4442b0e9.f5b94",
+        "name": "done",
+        "rules": [
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "Done",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 670,
+        "y": 360,
+        "wires": [
+            [
+                "34f71604.adf72a"
+            ]
+        ]
+    },
+    {
+        "id": "d7230494.a7f4c8",
+        "type": "ui_group",
+        "z": "",
+        "name": "Actions",
+        "tab": "e978da58.936788",
+        "order": 1,
+        "disp": false,
+        "width": "12",
+        "collapse": false
+    },
+    {
+        "id": "e978da58.936788",
+        "type": "ui_tab",
+        "z": "",
+        "name": "Utilites - Edge Analyzer",
+        "icon": "dashboard",
+        "order": 4,
+        "disabled": false,
+        "hidden": false
+    }
+]

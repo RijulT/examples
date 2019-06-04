@@ -11,9 +11,10 @@ These are steps required for setting up an edge device for use with an Edge Anal
  - UtilitiesForEdge_flow.json
 - Create browser bookmarks for Node-red Editor:localhost:1880 and Node-red UI:localhost:1880/ui
 - Edit the autostart file to make the browser launch full screen on startup
+- on pi: sudo nano /home/pi/.config/lxsession/LXDE-pi/autostart or (some installations) sudo nano /etc/xdg/lxsession/LXDE-pi/autostart
+- on tinkerboard /home/linaro/.config/lxsession/LXDE/autostart
 ```
-sudo nano /home/pi/.config/lxsession/LXDE-pi/autostart or /home/linaro/.config/lxsession/LXDE/autostart (on tinkerboard)
-#to add the following lines
+#add the following lines
 
 @xset s noblank
 @xset s off

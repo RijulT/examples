@@ -72,3 +72,4 @@ EXAMPLE MAPPING FILES
 ---------------------
 
 Example files with mapping using common tags that exist in all PI systems are in the example_mappings directory.
+https://github.com/Falkonry/examples/tree/master/pi_powershell/example_mappings

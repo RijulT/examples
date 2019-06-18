@@ -18,10 +18,15 @@ Invocation:
 
 Where:
 hostname - The PI Host or Collective name or address.
+
 tagsfile - A path to the csv file containing the list of tags.
+
 starttime - The start time for the data.  The Local timezone will be assumed.
+
 endtime - The end time for the data. The local timezone will be assumed.  Default: Current Time.
+
 blockSize - A string specifying the number of hours or days to include in each file.  Examples: 2d, 4h, 1d, 24h, etc.  Default: 1d
+
 outputdir - Directory in which to place exported csv files.
 
 NOTES

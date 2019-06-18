@@ -17,6 +17,7 @@ Invocation:
   .\TagDataExtractor.ps1 -h hostname -f tagsfile -s starttime [-e endtime] [-b blocksize] -o outputdir
 
 Where:
+
 hostname - The PI Host or Collective name or address.
 
 tagsfile - A path to the csv file containing the list of tags.
@@ -25,7 +26,7 @@ starttime - The start time for the data.  The Local timezone will be assumed.
 
 endtime - The end time for the data. The local timezone will be assumed.  Default: Current Time.
 
-blockSize - A string specifying the number of hours or days to include in each file.  Examples: 2d, 4h, 1d, 24h, etc.  Default: 1d
+blockSize - A string specifying the number of hours or days to include in each file.  Examples: 2d, 4h, 1d, 24h, etc.   Default: 1d
 
 outputdir - Directory in which to place exported csv files.
 
@@ -40,19 +41,34 @@ The output csv files with be in the format:
 [Entity,][Signal,]Tag,Value,Timestamp(UTC),IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError[,signal][,entity]
 
 When the signal and entity are specified in the csv file containing the tags to extract, the narrow column mappings for importing the files are:
+
 timestamp => Timestamp(UTC) 
+
 entity => Entity
+
 signal => Signal
+
 value => value
 
 When the signal is not specified, the tag will be assumed to be the signal name.  The narrow format column mappings for importing the files are:
+
 timestamp => Timestamp(UTC) 
+
 entity => Entity
+
 signal => tag
+
 value => value
 
 If the entity is not specified, the narrow format column mappings for importing the files are:
+
 timestamp => Timestamp(UTC) 
+
 signal => tag or Signal depending on csv file containing tags list
+
 value => value
 
+EXAMPLE MAPPING FILES
+---------------------
+
+Example files with mapping using common tags that exist in all PI systems are in the example_mappings directory.

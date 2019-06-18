@@ -96,6 +96,19 @@ function PrintParams()
 	Write-Output $"outputdir=$o"
 }
 
+Add-Type -Assembly Microsoft.VisualBasic
+function CoerceValue([string] $pttype,[string] $value)
+{
+	if($pttype.ToLower().StartsWith('flo') -or $pttype.ToLower().StartsWith('int'))
+	{
+		if(-not [Microsoft.VisualBasic.Information]::IsNumeric($value))
+		{
+			return ""
+		}
+	}
+	return $value
+}
+
 # PATTERNs
 $datePattern = '([12]\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])[ ](?:[01]\d|2[0123]):(?:[012345]\d):(?:[012345]\d))'
 
@@ -247,6 +260,7 @@ do
 	$tagName=$parts[$tagIndex]
 	$bn=0
 	$blockStartTime=$startTime
+	$pttype=(Get-PIPoint -Name $tagName -Attributes pointtype -Connection $con).Attributes.pointtype
 	do
 	{
 		# Get end time for this block of data
@@ -265,7 +279,7 @@ do
 			$fileName = ($parts[$entityIndex] -replace '[\W]','_')+'_'+($parts[$signalIndex] -replace '[\W]','_')+'_Block_'+$bn
 			New-Item -ItemType File -Path $o -Name "$fileName.csv"
 			Write-Output "created file $o\$fileName.csv"
-			$values | Select-Object -Property @{Name='Entity';Expression={$parts[$entityIndex]}},@{Name='Signal';Expression={$parts[$signalIndex]}},@{Name='Tag';Expression={$tagName}},value,@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
+			$values | Select-Object -Property @{Name='Entity';Expression={$parts[$entityIndex]}},@{Name='Signal';Expression={$parts[$signalIndex]}},@{Name='Tag';Expression={$tagName}},@{Name='Value';Expression={CoerceValue $pttype.ToString() $_.value.ToString()}},@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
 		}
 		elseif($entityIndex -gt -1)
 		{
@@ -273,7 +287,7 @@ do
 			$fileName = ($parts[$entityIndex] -replace '[\W]','_')+'_'+($tagName -replace '[\W]','_')+'_Block_'+$bn
 			New-Item -ItemType File -Path $o -Name "$fileName.csv"
 			Write-Output "created file $o\$fileName.csv"
-			$values | Select-Object -Property @{Name='Entity';Expression={$parts[$entityIndex]}},@{Name='Tag';Expression={$tagName}},value,@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
+			$values | Select-Object -Property @{Name='Entity';Expression={$parts[$entityIndex]}},@{Name='Tag';Expression={$tagName}},@{Name='Value';Expression={CoerceValue $pttype.ToString() $_.value.ToString()}},@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
 		}
 		elseif($signalIndex -gt -1)
 		{
@@ -281,7 +295,7 @@ do
 			$fileName = ($parts[$signalIndex] -replace '[\W]','_') +'_Block_'+$bn
 			New-Item -ItemType File -Path $o -Name "$fileName.csv"
 			Write-Output "created file $o\$fileName.csv"
-			$values | Select-Object -Property @{Name='Signal';Expression={$parts[$signalIndex]}},@{Name='Tag';Expression={$tagName}},value,@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
+			$values | Select-Object -Property @{Name='Signal';Expression={$parts[$signalIndex]}},@{Name='Tag';Expression={$tagName}},@{Name='Value';Expression={CoerceValue $pttype.ToString() $_.value.ToString()}},@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
 		}
 		else
 		{
@@ -289,7 +303,7 @@ do
 			$fileName = ($tagName -replace '[\W]','_')+'_Block_'+$bn
 			New-Item -ItemType File -Path $o -Name "$fileName.csv"
 			Write-Output "created file $o\$fileName.csv"
-			$values | Select-Object -Property @{Name='Tag';Expression={$tagName}},value,@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
+			$values | Select-Object -Property @{Name='Tag';Expression={$tagName}},@{Name='Value';Expression={CoerceValue $pttype.ToString() $_.value.ToString()}},@{Name='Timestamp(UTC)';Expression={$_.timestamp.ToString("o")}},IsGood,IsAnnotated,IsSubstituted,IsQuestionable,IsServerError | Export-Csv -Path "$o\$fileName.csv" -NoTypeInformation 
 		}
 
 		# increment block times
@@ -297,5 +311,7 @@ do
 		$bn++
 	} until($blockStartTime -ge $endTime)
 } until(++$i -ge $lines.Count)
+  
+  
   
   

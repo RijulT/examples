@@ -1,1 +1,891 @@
-[{"id":"a9fe8a92.3fb8c8","type":"tab","label":" LRS to Wonderware - Outputs","disabled":false,"info":""},{"id":"d341e92a.c054e8","type":"function","z":"a9fe8a92.3fb8c8","name":"Flow Settings","func":"var topic = msg.topic;\nif(topic === \"default\")\n{\nglobal.set(\"baseURL\",\"https://dev.falkonry.ai/api/1.1/\");\nglobal.set(\"falkonryToken\",\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE4ODQwNzM4MzUsICJlbWFpbCIgOiAia2V2YWwuYmhhbnVzaGFsaUBmYWxrb25yeS5jb20iLCAibmFtZSIgOiAia2V2YWwuYmhhbnVzaGFsaUBmYWxrb25yeS5jb20iLCAic2Vzc2lvbiIgOiAiNjIzNDU1NzU2MzYzMDE0MTQ0IiB9.hXNfyXcT9xIfqIPxqOeheLrXuP9TAdhBLyyUjcc97-0\");\nglobal.set(\"wwupURL\",\"https://online.wonderware.com/apis/upload/datasource\");\nglobal.set(\"wwupToken\",\"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6ImU3NzJmZTk2LTE5YzEtNGY5Zi1hOWE4LThmOGMwYzIzYjVjNCJ9.eyJEYXRhU291cmNlSWQiOiJmOWYzYjEyZi02ZmQwLTRmN2UtODFkZi0yYWYxNjM3OThiNGIiLCJ0eXBlIjoic2VydmljZSIsInZlcnNpb24iOiIxLjAiLCJ0ZW5hbnRpZCI6IjM3M2FhOTdiLWVhNTMtNDk3NS05NDIyLWE4MzgzYWY3ZTE0ZSIsInNpaWQiOiJiYWM1ZGFjYy1iYTA5LTQyYmYtYWVmNC0xZDlkNTQyNDY5YTIiLCJqdGkiOiIxMjgyNGRjNC1mZmVjLTQ0Y2QtYTBlNC03ZTJlM2VlYWZkMzciLCJpc3MiOiJwcm9vZm9maWRlbnRpdHlzZXJ2aWNlIn0.bs8xwzixR5Z3nsG1l-_WkmCbxUWFsjsW56xqZ9hFV_X2bTF3IP8miGMT_RjS6qZ7k99-EIocyXYQZsorSuAw0leQem3d110zyLs8A-nkILHXYOPKqmPuwgegTaUWnPInl-T6MPzAvmSHjBAnzRx0loQbJBQpA-grkFVUqRyuMe9m-M43EGe_L9UaxjGCwzdbV-iL4wF3Iuo8jkve-gL8r6r3OI6dKdmFjbPiqnl0WCiEnYN1jxC-6DF9Jr8DHx7kP7chf9u9tX9U1QPIuVZFtDSI4UJrC8ITvpWYoLWIdful9QG9WkUnUqs2T_AN_ZNtJws4XEyKr2_oCpZH4VsJgg\");\nflow.set(\"accountId\",\"600756889714286592\");\nflow.set(\"datastreamId\",\"623678939434532864\");\nflow.set(\"modelId\",\"624099800412672000\");\nflow.set(\"assessmentId\",\"623678939459698688\");\nflow.set(\"contentType\", \"application/x-ndjson\");\nmsg.issue = \"Default config selected; Getting model predictions ....\";\nreturn msg;\n}\nelse if(topic === \"user\")\n{\n    if(msg.existingData === true)\n    {\n        global.set(\"baseURL\",\"https://dev.falkonry.ai/api/1.1/\");\n        global.set(\"falkonryToken\",\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE4ODQwNzM4MzUsICJlbWFpbCIgOiAia2V2YWwuYmhhbnVzaGFsaUBmYWxrb25yeS5jb20iLCAibmFtZSIgOiAia2V2YWwuYmhhbnVzaGFsaUBmYWxrb25yeS5jb20iLCAic2Vzc2lvbiIgOiAiNjIzNDU1NzU2MzYzMDE0MTQ0IiB9.hXNfyXcT9xIfqIPxqOeheLrXuP9TAdhBLyyUjcc97-0\");\n    }\n    else\n    {\n        global.set(\"baseURL\", msg.payload.baseURL);\n        global.set(\"falkonryToken\",payload.falkonryToken);\n    }\n    global.set(\"wwupURL\",payload.wwupURL);\n    global.set(\"wwupToken\",msg.payload.wwupToken);\n    flow.set(\"accountId\",msg.payload.accountId);\n    flow.set(\"datastreamId\",msg.payload.datastreamId);\n    flow.set(\"modelId\",msg.payload.modelId);\n    flow.set(\"assessmentId\",msg.payload.assessmentId);\n    flow.set(\"accept\", \"application/x-ndjson\");\n    msg.issue = \"User Configuration received; Getting model predictions ....\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":220,"y":120,"wires":[["2b6be9ea.3e7116","b88f2f14.caeea"]]},{"id":"2b6be9ea.3e7116","type":"function","z":"a9fe8a92.3fb8c8","name":"Predictions URL","func":"msg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"falkonryToken\"),\n        \"Accept\" : flow.get(\"contentType\")\n        \n    },\n    method: 'GET',\n    url: global.get(\"baseURL\") + \"accounts/\" + flow.get(\"accountId\") + \"/datastreams/\" +flow.get(\"datastreamId\") + \"/assessments/\" +flow.get(\"assessmentId\") + \"/models/\" + flow.get(\"modelId\") + \"/outputs/predictions?limit=10000\",\n    \n}\nreturn msg;","outputs":1,"noerr":0,"x":420,"y":120,"wires":[["2372a12f.2758ee"]]},{"id":"2372a12f.2758ee","type":"http request","z":"a9fe8a92.3fb8c8","name":"","method":"use","ret":"txt","paytoqs":false,"url":"","tls":"","persist":false,"proxy":"","authType":"","x":590,"y":120,"wires":[["40491507.2fa9cc","b4e27775.227ec8"]]},{"id":"40491507.2fa9cc","type":"function","z":"a9fe8a92.3fb8c8","name":"Modify payload","func":"var ind = msg.payload.replace(/time/g,\"dateTime\");\nind = ind.replace(/entity/g,\"Predictions.entity\");\nmsg.pl = ind.replace(/value/g,\"Predictions.value\");\nmsg.pl = msg.pl.split(\"\\n\");\n\nreturn msg;\n","outputs":1,"noerr":0,"x":120,"y":200,"wires":[["3a1323c6.e4794c"]]},{"id":"73b0cdd5.200b24","type":"function","z":"a9fe8a92.3fb8c8","name":"Upload URL","func":"\nmsg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"wwupToken\"),\n        \"X-Filename\": \"Falkonry_Predictions_1Machine_SW.json\",\n    },\n    url: global.get(\"wwupURL\"),\n    method: \"POST\",\n    payload: {\"data\": msg.dl}\n    \n}\nreturn msg;\n","outputs":1,"noerr":0,"x":590,"y":200,"wires":[["b7bb3aa.1b824c8"]]},{"id":"b7bb3aa.1b824c8","type":"http request","z":"a9fe8a92.3fb8c8","name":"","method":"use","ret":"txt","paytoqs":false,"url":"","tls":"","persist":false,"proxy":"","authType":"","x":770,"y":200,"wires":[["2cbbb93b.09d9b6","452efddd.5acf54","c300797c.fe9308"]]},{"id":"3a1323c6.e4794c","type":"function","z":"a9fe8a92.3fb8c8","name":"Parsing to JS object","func":"var dl =[];\nfor (var i = 0; i < (msg.pl.length - 1); i++)\ndl[i] = JSON.parse(msg.pl[i]);\nmsg.dl= dl;\nreturn msg;","outputs":1,"noerr":0,"x":360,"y":200,"wires":[["73b0cdd5.200b24"]]},{"id":"e530acea.592ad","type":"function","z":"a9fe8a92.3fb8c8","name":"Confidences URL","func":"msg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"falkonryToken\"),\n        \"Accept\" : flow.get(\"contentType\")\n    },\n    method: 'GET',\n    url: global.get(\"baseURL\") + \"accounts/\" + flow.get(\"accountId\") + \"/datastreams/\" +flow.get(\"datastreamId\") + \"/assessments/\" +flow.get(\"assessmentId\") + \"/models/\" + flow.get(\"modelId\") + \"/outputs/confidences?limit=10000\",\n    \n}\nreturn msg;","outputs":1,"noerr":0,"x":170,"y":360,"wires":[["3297fb1e.0e9784"]]},{"id":"3297fb1e.0e9784","type":"http request","z":"a9fe8a92.3fb8c8","name":"","method":"use","ret":"txt","paytoqs":false,"url":"","tls":"","persist":false,"proxy":"","authType":"","x":350,"y":360,"wires":[["65a26b34.ffed14","a56bc72e.437a78"]]},{"id":"5c980829.1fb038","type":"function","z":"a9fe8a92.3fb8c8","name":"Upload URL","func":"msg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"wwupToken\"),\n        \"X-Filename\": \"Falkonry_Confidences_1Machine_SW.json\",\n    },\n    url: global.get(\"wwupURL\"),\n    method: \"POST\",\n    payload: {\"data\": msg.dl}\n}\nreturn msg;\n","outputs":1,"noerr":0,"x":470,"y":420,"wires":[["4678e46.986551c"]]},{"id":"4678e46.986551c","type":"http request","z":"a9fe8a92.3fb8c8","name":"","method":"use","ret":"txt","paytoqs":false,"url":"","tls":"","persist":false,"proxy":"","authType":"","x":670,"y":420,"wires":[["fbf75d46.15f74","4561236.425fddc"]]},{"id":"fbf75d46.15f74","type":"debug","z":"a9fe8a92.3fb8c8","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"true","targetType":"full","x":730,"y":500,"wires":[]},{"id":"65a26b34.ffed14","type":"function","z":"a9fe8a92.3fb8c8","name":"Modify payload","func":"var ind = msg.payload.replace(/time/g,\"dateTime\");\nind = ind.replace(/entity/g,\"Confidence.entity\");\nmsg.pl = ind.replace(/value/g,\"Confidence.value\");\nmsg.pl = msg.pl.split(\"\\n\");\nreturn msg;\n","outputs":1,"noerr":0,"x":560,"y":360,"wires":[["f3f714db.50e418"]]},{"id":"f3f714db.50e418","type":"function","z":"a9fe8a92.3fb8c8","name":"Parsing to JS object","func":"var dl =[];\nfor (var i = 0; i < (msg.pl.length - 1); i++)\ndl[i] = JSON.parse(msg.pl[i]);\nmsg.dl= dl;\nreturn msg;","outputs":1,"noerr":0,"x":200,"y":420,"wires":[["5c980829.1fb038"]]},{"id":"afe8d022.ab84f","type":"ui_form","z":"a9fe8a92.3fb8c8","name":"","label":"","group":"4f180702.897818","order":1,"width":0,"height":0,"options":[{"label":"AccountId","value":"accountId","type":"text","required":true},{"label":"AssessmentId","value":"assessmentId","type":"text","required":true},{"label":"ModelId","value":"modelId","type":"text","required":true},{"label":"DatastreamId","value":"datastreamId","type":"text","required":true},{"label":"<<Wonderware-upload-endpoint>>","value":"wwupURL","type":"text","required":true},{"label":"wwi-upload-Token","value":"wwupToken","type":"text","required":true},{"label":"Use Existing Falkonry site settings?","value":"existingData","type":"switch","required":true},{"label":"<<Falkonry-server-address>> (Optional if using existing)","value":"baseURL","type":"text","required":false},{"label":"Falkonry-Token(Optional if using existing)","value":"falkonryToken","type":"text","required":false}],"formValue":{"accountId":"","assessmentId":"","modelId":"","datastreamId":"","wwupURL":"","wwupToken":"","existingData":false,"baseURL":"","falkonryToken":""},"payload":"","submit":"submit","cancel":"cancel","topic":"user","x":50,"y":120,"wires":[["d341e92a.c054e8"]]},{"id":"d8bb0f13.770b","type":"ui_button","z":"a9fe8a92.3fb8c8","name":"","group":"4f180702.897818","order":3,"width":5,"height":1,"passthru":false,"label":"Use Default Configurations","tooltip":"","color":"","bgcolor":"green","icon":"","payload":"","payloadType":"str","topic":"default","x":140,"y":40,"wires":[["d341e92a.c054e8"]]},{"id":"2cbbb93b.09d9b6","type":"link out","z":"a9fe8a92.3fb8c8","name":"","links":["8f5592eb.1b30a"],"x":915,"y":200,"wires":[]},{"id":"8f5592eb.1b30a","type":"link in","z":"a9fe8a92.3fb8c8","name":"","links":["2cbbb93b.09d9b6"],"x":35,"y":360,"wires":[["e530acea.592ad"]]},{"id":"b88f2f14.caeea","type":"ui_text","z":"a9fe8a92.3fb8c8","group":"214d0bd2.8bde04","order":1,"width":0,"height":0,"name":"Progress Tab","label":"","format":"{{msg.issue}}  {{msg.issue2}} ","layout":"col-center","x":1170,"y":260,"wires":[]},{"id":"b4e27775.227ec8","type":"function","z":"a9fe8a92.3fb8c8","name":"Set ui message","func":"if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Predictions received from Falkonry; \\n Connecting to Wonderware and uploading predictions.....\";\n}\nelse\n{\nmsg.issue = \"Failed to obtained predictions. StatusCode: \" + msg.statusCode + \". Kindly try again or check node-red flow\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":980,"y":120,"wires":[["b88f2f14.caeea"]]},{"id":"452efddd.5acf54","type":"function","z":"a9fe8a92.3fb8c8","name":"Set ui message","func":"if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Predictions uploaded to Wonderware Insights; \\n Getting prediction confidence scores.....\";\n}\nelse\n{\nmsg.issue2 = \"Failed to upload predictions. StatusCode: \" + msg.statusCode + \" \" + msg.payload +\". Kindly try again or check node-red flow\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":980,"y":160,"wires":[["b88f2f14.caeea"]]},{"id":"a56bc72e.437a78","type":"function","z":"a9fe8a92.3fb8c8","name":"Set ui message","func":"if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Confidence scores received from Falkonry; \\n Connecting to Wonderware and uploading predictions.....\";\n}\nelse\n{\nmsg.issue = \"Failed to obtained confidence scores. StatusCode: \" + msg.statusCode + \". Kindly try again or check node-red flow\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":960,"y":300,"wires":[["b88f2f14.caeea"]]},{"id":"4561236.425fddc","type":"function","z":"a9fe8a92.3fb8c8","name":"Set ui message","func":"if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Confidence scores uploaded to Wonderware Insights; \\n Go to Insights to check your latest uploaded file\";\n}\nelse\n{\nmsg.issue2 = \"Failed to upload confidence scores. StatusCode: \" + msg.statusCode + \" \" + msg.payload +\". Kindly try again or check node-red flow\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":960,"y":380,"wires":[["b88f2f14.caeea"]]},{"id":"a50df0db.c6637","type":"inject","z":"a9fe8a92.3fb8c8","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":true,"onceDelay":0.1,"x":170,"y":540,"wires":[["ccd43f95.3f2f7"]]},{"id":"ccd43f95.3f2f7","type":"change","z":"a9fe8a92.3fb8c8","name":"Progress Tab Default","rules":[{"t":"set","p":"issue","pt":"msg","to":"Submit configs or run default to Begin!","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":400,"y":540,"wires":[["89af1278.d3d65"]]},{"id":"da962166.c51fc","type":"comment","z":"a9fe8a92.3fb8c8","name":"Progress Tab Reset on deploy","info":"","x":160,"y":500,"wires":[]},{"id":"e303b3ea.a0486","type":"comment","z":"a9fe8a92.3fb8c8","name":"Confidence scores","info":"","x":150,"y":300,"wires":[]},{"id":"6c702d50.9c23e4","type":"comment","z":"a9fe8a92.3fb8c8","name":"Predictions","info":"","x":380,"y":60,"wires":[]},{"id":"89af1278.d3d65","type":"link out","z":"a9fe8a92.3fb8c8","name":"","links":["226e2b65.1a17f4"],"x":580,"y":560,"wires":[]},{"id":"226e2b65.1a17f4","type":"link in","z":"a9fe8a92.3fb8c8","name":"","links":["89af1278.d3d65"],"x":1055,"y":520,"wires":[["b88f2f14.caeea"]]},{"id":"c300797c.fe9308","type":"debug","z":"a9fe8a92.3fb8c8","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"true","targetType":"full","x":700,"y":280,"wires":[]},{"id":"4f180702.897818","type":"ui_group","z":"","name":"Output Configurations","tab":"8b842af0.f91608","disp":true,"width":11,"collapse":false},{"id":"214d0bd2.8bde04","type":"ui_group","z":"","name":"Progress Tab","tab":"8b842af0.f91608","disp":true,"width":"6","collapse":false},{"id":"8b842af0.f91608","type":"ui_tab","z":"","name":"WWI Integration - LRS Outputs","icon":"dashboard","order":2,"disabled":false,"hidden":false}]
+[
+    {
+        "id": "ac184640.378258",
+        "type": "tab",
+        "label": " LRS to Wonderware - Outputs",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "f6e83b19.148298",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Flow Settings",
+        "func": "var topic = msg.topic;\nif(topic === \"default\")\n{\n    global.set(\"baseURL\", msg.payload.baseURL);\n    global.set(\"falkonryToken\",msg.payload.falkonryToken);\n    global.set(\"wwupURL\",msg.payload.wonderware_upload_URL);\n    global.set(\"wwupToken\",msg.payload.wonderware_upload_Token);\n    flow.set(\"accountId\",msg.payload.accountId);\n    flow.set(\"datastreamId\",msg.payload.datastreamId);\n    flow.set(\"modelId\",msg.payload.modelId);\n    flow.set(\"assessmentId\",msg.payload.assessmentId);\n    flow.set(\"accept\", \"application/x-ndjson\");\nmsg.issue = \"Default config selected; Getting model predictions ....\";\nreturn msg;\n}\nelse if(topic === \"user\")\n{\n    if(msg.existingData === true)\n    {\n     global.get(\"baseURL\");\n     global.get(\"falkonryToken\");\n    }\n    else\n    {\n        global.set(\"baseURL\", msg.payload.baseURL);\n        global.set(\"falkonryToken\",msg.payload.falkonryToken);\n    }\n    global.set(\"wwupURL\",msg.payload.wonderware_upload_URL);\n    global.set(\"wwupToken\",msg.payload.wonderware_upload_Token);\n    flow.set(\"accountId\",msg.payload.accountId);\n    flow.set(\"datastreamId\",msg.payload.datastreamId);\n    flow.set(\"modelId\",msg.payload.modelId);\n    flow.set(\"assessmentId\",msg.payload.assessmentId);\n    flow.set(\"accept\", \"application/x-ndjson\");\n    msg.issue = \"User Configuration received; Getting model predictions ....\";\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 760,
+        "y": 160,
+        "wires": [
+            [
+                "8b9dc3d1.6ac2",
+                "50179bcb.e6b954"
+            ]
+        ]
+    },
+    {
+        "id": "50179bcb.e6b954",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Predictions URL",
+        "func": "msg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"falkonryToken\"),\n        \"Accept\" : flow.get(\"accept\")\n        \n    },\n    method: 'GET',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \"/datastreams/\" +flow.get(\"datastreamId\") + \"/assessments/\" +flow.get(\"assessmentId\") + \"/models/\" + flow.get(\"modelId\") + \"/outputs/predictions?limit=10000\",\n    \n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 960,
+        "y": 160,
+        "wires": [
+            [
+                "5c4ae555.efbd0c"
+            ]
+        ]
+    },
+    {
+        "id": "5c4ae555.efbd0c",
+        "type": "http request",
+        "z": "ac184640.378258",
+        "name": "Get pred",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 1140,
+        "y": 160,
+        "wires": [
+            [
+                "2294b0a4.0cbf",
+                "d80f3cea.627"
+            ]
+        ]
+    },
+    {
+        "id": "1a685e0d.533a72",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Modify payload",
+        "func": "var ind = msg.payload.replace(/time/g,\"dateTime\");\nind = ind.replace(/entity/g,\"Predictions.entity\");\nmsg.pl = ind.replace(/value/g,\"Predictions.value\");\nmsg.pl = msg.pl.split(\"\\n\");\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 160,
+        "y": 280,
+        "wires": [
+            [
+                "c9312632.c1d8e8"
+            ]
+        ]
+    },
+    {
+        "id": "152c52a7.08697d",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Upload URL",
+        "func": "\nmsg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"wwupToken\"),\n        \"X-Filename\": \"Falkonry_Predictions_1Machine_SW.json\",\n    },\n    url: global.get(\"wwupURL\"),\n    method: \"POST\",\n    payload: {\"data\": msg.dl}\n    \n}\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 550,
+        "y": 280,
+        "wires": [
+            [
+                "c5589994.73cc98"
+            ]
+        ]
+    },
+    {
+        "id": "c5589994.73cc98",
+        "type": "http request",
+        "z": "ac184640.378258",
+        "name": "To WW",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 700,
+        "y": 280,
+        "wires": [
+            [
+                "bd784829.256758",
+                "7d61655f.1157fc"
+            ]
+        ]
+    },
+    {
+        "id": "c9312632.c1d8e8",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Parsing to JS object",
+        "func": "var dl =[];\nfor (var i = 0; i < (msg.pl.length - 1); i++)\ndl[i] = JSON.parse(msg.pl[i]);\nmsg.dl= dl;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 360,
+        "y": 280,
+        "wires": [
+            [
+                "152c52a7.08697d"
+            ]
+        ]
+    },
+    {
+        "id": "725162fc.ff654c",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Confidences URL",
+        "func": "msg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"falkonryToken\"),\n        \"Accept\" : flow.get(\"accept\")\n    },\n    method: 'GET',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \"/datastreams/\" +flow.get(\"datastreamId\") + \"/assessments/\" +flow.get(\"assessmentId\") + \"/models/\" + flow.get(\"modelId\") + \"/outputs/confidences?limit=10000\",\n    \n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 150,
+        "y": 440,
+        "wires": [
+            [
+                "422133f3.4033ec"
+            ]
+        ]
+    },
+    {
+        "id": "422133f3.4033ec",
+        "type": "http request",
+        "z": "ac184640.378258",
+        "name": "Get Conf",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 340,
+        "y": 440,
+        "wires": [
+            [
+                "78f708d6.ba33d8",
+                "eb75ace9.46c1c"
+            ]
+        ]
+    },
+    {
+        "id": "b1c9d703.c17268",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Upload URL",
+        "func": "msg = {\n    headers:{\n        \"Authorization\": \"Bearer \" + global.get(\"wwupToken\"),\n        \"X-Filename\": \"Falkonry_Confidences_1Machine_SW.json\",\n    },\n    url: global.get(\"wwupURL\"),\n    method: \"POST\",\n    payload: {\"data\": msg.dl}\n}\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 930,
+        "y": 440,
+        "wires": [
+            [
+                "746e590f.9919e8"
+            ]
+        ]
+    },
+    {
+        "id": "746e590f.9919e8",
+        "type": "http request",
+        "z": "ac184640.378258",
+        "name": "To WW",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 1100,
+        "y": 440,
+        "wires": [
+            [
+                "6780cd44.e6c234",
+                "ed5ff176.b71d2"
+            ]
+        ]
+    },
+    {
+        "id": "6780cd44.e6c234",
+        "type": "debug",
+        "z": "ac184640.378258",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 1150,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "78f708d6.ba33d8",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Modify payload",
+        "func": "var ind = msg.payload.replace(/time/g,\"dateTime\");\nind = ind.replace(/entity/g,\"Confidence.entity\");\nmsg.pl = ind.replace(/value/g,\"Confidence.value\");\nmsg.pl = msg.pl.split(\"\\n\");\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 520,
+        "y": 440,
+        "wires": [
+            [
+                "7f19232.04be6dc"
+            ]
+        ]
+    },
+    {
+        "id": "7f19232.04be6dc",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Parsing to JS object",
+        "func": "var dl =[];\nfor (var i = 0; i < (msg.pl.length - 1); i++)\ndl[i] = JSON.parse(msg.pl[i]);\nmsg.dl= dl;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 720,
+        "y": 440,
+        "wires": [
+            [
+                "b1c9d703.c17268"
+            ]
+        ]
+    },
+    {
+        "id": "e64cc332.ae7fe",
+        "type": "ui_form",
+        "z": "ac184640.378258",
+        "name": "Form UI",
+        "label": "",
+        "group": "5317b029.c710c",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "options": [
+            {
+                "label": "AccountId",
+                "value": "accountId",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "AssessmentId",
+                "value": "assessmentId",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "ModelId",
+                "value": "modelId",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "DatastreamId",
+                "value": "datastreamId",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "<<Wonderware-upload-endpoint>>",
+                "value": "wonderware_upload_URL",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "wwi-upload-Token",
+                "value": "wonderware_upload_Token",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "Use Existing Falkonry Configurations??",
+                "value": "existingData",
+                "type": "switch",
+                "required": true
+            },
+            {
+                "label": "<<Falkonry-server-address>> (Optional if using existing)",
+                "value": "baseURL",
+                "type": "text",
+                "required": false
+            },
+            {
+                "label": "Falkonry-Token(Optional if using existing)",
+                "value": "falkonryToken",
+                "type": "password",
+                "required": false
+            }
+        ],
+        "formValue": {
+            "accountId": "",
+            "assessmentId": "",
+            "modelId": "",
+            "datastreamId": "",
+            "wonderware_upload_URL": "",
+            "wonderware_upload_Token": "",
+            "existingData": false,
+            "baseURL": "",
+            "falkonryToken": ""
+        },
+        "payload": "",
+        "submit": "submit",
+        "cancel": "cancel",
+        "topic": "user",
+        "x": 50,
+        "y": 200,
+        "wires": [
+            [
+                "c240be41.b8631"
+            ]
+        ]
+    },
+    {
+        "id": "9b783ef5.eec5e",
+        "type": "link out",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [
+            "f89ee30b.5ba2"
+        ],
+        "x": 1155,
+        "y": 280,
+        "wires": []
+    },
+    {
+        "id": "f89ee30b.5ba2",
+        "type": "link in",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [
+            "9b783ef5.eec5e"
+        ],
+        "x": 15,
+        "y": 440,
+        "wires": [
+            [
+                "725162fc.ff654c"
+            ]
+        ]
+    },
+    {
+        "id": "8b9dc3d1.6ac2",
+        "type": "ui_text",
+        "z": "ac184640.378258",
+        "group": "39092103.ff102e",
+        "order": 1,
+        "width": 6,
+        "height": 5,
+        "name": "Progress Tab",
+        "label": "",
+        "format": "{{msg.issue}}  {{msg.issue2}} ",
+        "layout": "col-center",
+        "x": 1670,
+        "y": 380,
+        "wires": []
+    },
+    {
+        "id": "2294b0a4.0cbf",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Set ui message",
+        "func": "if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Predictions received from Falkonry; \\n Connecting to Wonderware and uploading predictions.....\";\n}\nelse\n{\nmsg.issue = \"Failed to obtained predictions. StatusCode: \" + msg.statusCode + \". Kindly try again or check node-red flow\";\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1360,
+        "y": 240,
+        "wires": [
+            [
+                "8b9dc3d1.6ac2"
+            ]
+        ]
+    },
+    {
+        "id": "bd784829.256758",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Set ui message",
+        "func": "if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Predictions uploaded to Wonderware Insights; \\n Getting prediction confidence scores.....\";\n}\nelse\n{\nmsg.issue2 = \"Failed to upload predictions. StatusCode: \" + msg.statusCode + \"\\n Error Message :\" + msg.payload +\". Kindly try again or check node-red flow\";\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1360,
+        "y": 360,
+        "wires": [
+            [
+                "8b9dc3d1.6ac2"
+            ]
+        ]
+    },
+    {
+        "id": "eb75ace9.46c1c",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Set ui message",
+        "func": "if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Confidence scores received from Falkonry; \\n Connecting to Wonderware and uploading predictions.....\";\n}\nelse\n{\nmsg.issue = \"Failed to obtained confidence scores. StatusCode: \" + msg.statusCode + \". Kindly try again or check node-red flow\";\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1360,
+        "y": 440,
+        "wires": [
+            [
+                "8b9dc3d1.6ac2"
+            ]
+        ]
+    },
+    {
+        "id": "ed5ff176.b71d2",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Set ui message",
+        "func": "if ((msg.statusCode == 201 || msg.statusCode == 200))\n{\n    msg.issue = \"Confidence scores uploaded to Wonderware Insights; \\n Go to Insights to check your latest uploaded file\";\n}\nelse\n{\nmsg.issue2 = \"Failed to upload confidence scores. StatusCode: \" + msg.statusCode + \" \" + msg.payload +\". Kindly try again or check node-red flow\";\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1360,
+        "y": 520,
+        "wires": [
+            [
+                "8b9dc3d1.6ac2"
+            ]
+        ]
+    },
+    {
+        "id": "ec30a9d4.49be18",
+        "type": "comment",
+        "z": "ac184640.378258",
+        "name": "Confidence scores",
+        "info": "",
+        "x": 110,
+        "y": 400,
+        "wires": []
+    },
+    {
+        "id": "ba4b8f76.8f632",
+        "type": "comment",
+        "z": "ac184640.378258",
+        "name": "Predictions",
+        "info": "",
+        "x": 920,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "4a757038.d285a",
+        "type": "link in",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [
+            "1b84d94c.b09c37",
+            "906d8193.b4dd4"
+        ],
+        "x": 1435,
+        "y": 620,
+        "wires": [
+            [
+                "8b9dc3d1.6ac2"
+            ]
+        ]
+    },
+    {
+        "id": "419c9881.7ed9a8",
+        "type": "ui_form",
+        "z": "ac184640.378258",
+        "name": "Form File",
+        "label": "<b><h3>OR Get Configurations from a Yaml File </b></h3>",
+        "group": "5317b029.c710c",
+        "order": 7,
+        "width": 0,
+        "height": 0,
+        "options": [
+            {
+                "label": "Enter the file-path of your config file",
+                "value": "fileName",
+                "type": "text",
+                "required": true
+            }
+        ],
+        "formValue": {
+            "fileName": ""
+        },
+        "payload": "",
+        "submit": "Use File Configurations",
+        "cancel": "Clear",
+        "topic": "default",
+        "x": 60,
+        "y": 120,
+        "wires": [
+            [
+                "c240be41.b8631"
+            ]
+        ]
+    },
+    {
+        "id": "d28d89b1.5f0128",
+        "type": "change",
+        "z": "ac184640.378258",
+        "name": "filename",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "payload.fileName",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "issue",
+                "pt": "flow",
+                "to": "Creating new Datastream using File Configurations;",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 280,
+        "y": 100,
+        "wires": [
+            [
+                "ce89f6bb.62d268"
+            ]
+        ]
+    },
+    {
+        "id": "ce89f6bb.62d268",
+        "type": "file in",
+        "z": "ac184640.378258",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 430,
+        "y": 100,
+        "wires": [
+            [
+                "2c746861.b3be48"
+            ]
+        ]
+    },
+    {
+        "id": "2c746861.b3be48",
+        "type": "yaml",
+        "z": "ac184640.378258",
+        "property": "payload",
+        "name": "Yaml to JS",
+        "x": 570,
+        "y": 100,
+        "wires": [
+            [
+                "f6e83b19.148298"
+            ]
+        ]
+    },
+    {
+        "id": "c240be41.b8631",
+        "type": "switch",
+        "z": "ac184640.378258",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "default",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "user",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 190,
+        "y": 160,
+        "wires": [
+            [
+                "d28d89b1.5f0128"
+            ],
+            [
+                "f6e83b19.148298"
+            ]
+        ]
+    },
+    {
+        "id": "bed4fca2.01e65",
+        "type": "catch",
+        "z": "ac184640.378258",
+        "name": "",
+        "scope": [
+            "50179bcb.e6b954",
+            "5c4ae555.efbd0c",
+            "1a685e0d.533a72",
+            "152c52a7.08697d",
+            "c5589994.73cc98",
+            "c9312632.c1d8e8",
+            "725162fc.ff654c",
+            "422133f3.4033ec",
+            "b1c9d703.c17268",
+            "746e590f.9919e8",
+            "78f708d6.ba33d8",
+            "7f19232.04be6dc",
+            "d28d89b1.5f0128",
+            "ce89f6bb.62d268",
+            "2c746861.b3be48"
+        ],
+        "uncaught": false,
+        "x": 800,
+        "y": 620,
+        "wires": [
+            [
+                "70d18e19.1b13a",
+                "424bd14e.fd1b2"
+            ]
+        ]
+    },
+    {
+        "id": "70d18e19.1b13a",
+        "type": "debug",
+        "z": "ac184640.378258",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "error",
+        "targetType": "msg",
+        "x": 1020,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "56d2a8ac.165c38",
+        "type": "inject",
+        "z": "ac184640.378258",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 170,
+        "y": 620,
+        "wires": [
+            [
+                "40b25f19.7b68"
+            ]
+        ]
+    },
+    {
+        "id": "40b25f19.7b68",
+        "type": "change",
+        "z": "ac184640.378258",
+        "name": "Progress Tab Default",
+        "rules": [
+            {
+                "t": "set",
+                "p": "issue",
+                "pt": "msg",
+                "to": "Submit configs manually or use configurations.yaml file to Begin!",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 400,
+        "y": 620,
+        "wires": [
+            [
+                "1b84d94c.b09c37"
+            ]
+        ]
+    },
+    {
+        "id": "fed0c9d1.6199b8",
+        "type": "comment",
+        "z": "ac184640.378258",
+        "name": "Progress Tab Reset on deploy",
+        "info": "",
+        "x": 160,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "1b84d94c.b09c37",
+        "type": "link out",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [
+            "4a757038.d285a"
+        ],
+        "x": 575,
+        "y": 620,
+        "wires": []
+    },
+    {
+        "id": "424bd14e.fd1b2",
+        "type": "change",
+        "z": "ac184640.378258",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "issue",
+                "pt": "msg",
+                "to": "error",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "error",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 960,
+        "y": 680,
+        "wires": [
+            [
+                "906d8193.b4dd4"
+            ]
+        ]
+    },
+    {
+        "id": "906d8193.b4dd4",
+        "type": "link out",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [
+            "4a757038.d285a"
+        ],
+        "x": 1115,
+        "y": 680,
+        "wires": []
+    },
+    {
+        "id": "7d61655f.1157fc",
+        "type": "function",
+        "z": "ac184640.378258",
+        "name": "Passing message",
+        "func": "if (msg.statusCode == 201 || msg.statusCode == 200)\n{\n    return msg;\n}\nelse {return null;}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 930,
+        "y": 280,
+        "wires": [
+            [
+                "9b783ef5.eec5e"
+            ]
+        ]
+    },
+    {
+        "id": "d80f3cea.627",
+        "type": "link out",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [
+            "cb19daeb.686668"
+        ],
+        "x": 1255,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "1d29595b.896317",
+        "type": "link in",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [],
+        "x": -20,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cb19daeb.686668",
+        "type": "link in",
+        "z": "ac184640.378258",
+        "name": "",
+        "links": [
+            "d80f3cea.627"
+        ],
+        "x": 35,
+        "y": 280,
+        "wires": [
+            [
+                "1a685e0d.533a72"
+            ]
+        ]
+    },
+    {
+        "id": "cda36416.17afb8",
+        "type": "comment",
+        "z": "ac184640.378258",
+        "name": "Get Configurations",
+        "info": "",
+        "x": 90,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "ec1afc4e.ff5b1",
+        "type": "comment",
+        "z": "ac184640.378258",
+        "name": "Handle errors",
+        "info": "",
+        "x": 810,
+        "y": 580,
+        "wires": []
+    },
+    {
+        "id": "5317b029.c710c",
+        "type": "ui_group",
+        "z": "",
+        "name": "Output Configurations",
+        "tab": "43649253.b1085c",
+        "disp": true,
+        "width": 11,
+        "collapse": false
+    },
+    {
+        "id": "39092103.ff102e",
+        "type": "ui_group",
+        "z": "",
+        "name": "Progress Tab",
+        "tab": "43649253.b1085c",
+        "disp": true,
+        "width": "6",
+        "collapse": true
+    },
+    {
+        "id": "43649253.b1085c",
+        "type": "ui_tab",
+        "z": "",
+        "name": "WWI Integration - LRS Outputs",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    }
+]

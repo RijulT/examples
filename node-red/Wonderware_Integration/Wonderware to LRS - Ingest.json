@@ -52,7 +52,7 @@
         "type": "function",
         "z": "e3fdcdd0.aa5f8",
         "name": "URL Builder",
-        "func": "flow.set(\"newDatastream_flag\",false);\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method: 'POST',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \"/jobs\",\n    payload:{\n        \"jobType\" : flow.get(\"jobType\"),\n        \"status\" : \"CREATED\",\n        \"datastream\" : flow.get(\"datastreamId\"),\n        \"spec\" : msg.ingestSpec\n        \n        \n    },\n    action: flow.get(\"action\"),\n};\n\nreturn msg;\n\n",
+        "func": "flow.set(\"newDatastream_flag\",false);\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method: 'POST',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \"/jobs\",\n    payload:{\n        \"jobType\" : \"INGESTDATA\",\n        \"status\" : \"CREATED\",\n        \"datastream\" : flow.get(\"datastreamId\"),\n        \"spec\" : msg.ingestSpec\n        \n        \n    },\n    action: flow.get(\"action\"),\n};\n\nreturn msg;\n\n",
         "outputs": 1,
         "noerr": 0,
         "x": 790,
@@ -348,12 +348,6 @@
                 "required": false
             },
             {
-                "label": "Falkonry jobType",
-                "value": "jobType",
-                "type": "text",
-                "required": true
-            },
-            {
                 "label": "Is Batch",
                 "value": "isBatch",
                 "type": "switch",
@@ -395,7 +389,6 @@
             "falkonryToken": "",
             "accountId": "",
             "datastreamName": "",
-            "jobType": "",
             "isBatch": false,
             "wonderware_ingest_URL": "",
             "wonderware_ingest_Token": "",
@@ -585,7 +578,7 @@
         "type": "function",
         "z": "e3fdcdd0.aa5f8",
         "name": "Falkonry Settings",
-        "func": "var newDs_flag = flow.get(\"newDatastream_flag\")\nif (newDs_flag === false)\n{\n    flow.set(\"jobType\",msg.payload.jobType);\n    return [null,msg];\n}\nelse\n{\nglobal.set(\"baseURL\",msg.payload.baseURL);\nglobal.set(\"falkonryToken\",msg.payload.falkonryToken);\nglobal.set(\"wwURL\",msg.payload.wonderware_ingest_URL);\nglobal.set(\"wwToken\",msg.payload.wonderware_ingest_Token);\nglobal.set(\"query_FQN\",msg.payload.query_FQN);\nglobal.set(\"query_startDate\",msg.payload.query_startDate);\nglobal.set(\"query_endDate\",msg.payload.query_endDate);\nflow.set(\"accountId\",msg.payload.accountId);\nflow.set(\"name\",msg.payload.datastreamName);\nflow.set(\"isBatch\",msg.payload.isBatch);\nflow.set(\"jobType\",msg.payload.jobType);\nflow.set(\"contentType\", \"application/json\");\nflow.set(\"action\",\"CREATE_JOB\");\nflow.set(\"execution_counter\",1);\nflow.set(\"state\",\"RESUME\");\nmsg.issue = flow.get(\"issue\");\nreturn [msg,null];\n}\n",
+        "func": "var newDs_flag = flow.get(\"newDatastream_flag\")\nif (newDs_flag === false)\n{\n    return [null,msg];\n}\nelse\n{\nglobal.set(\"baseURL\",msg.payload.baseURL);\nglobal.set(\"falkonryToken\",msg.payload.falkonryToken);\nglobal.set(\"wwURL\",msg.payload.wonderware_ingest_URL);\nglobal.set(\"wwToken\",msg.payload.wonderware_ingest_Token);\nglobal.set(\"query_FQN\",msg.payload.query_FQN);\nglobal.set(\"query_startDate\",msg.payload.query_startDate);\nglobal.set(\"query_endDate\",msg.payload.query_endDate);\nflow.set(\"accountId\",msg.payload.accountId);\nflow.set(\"name\",msg.payload.datastreamName);\nflow.set(\"isBatch\",msg.payload.isBatch);\nflow.set(\"contentType\", \"application/json\");\nflow.set(\"action\",\"CREATE_JOB\");\nflow.set(\"execution_counter\",1);\nflow.set(\"state\",\"RESUME\");\nmsg.issue = flow.get(\"issue\");\nreturn [msg,null];\n}\n",
         "outputs": 2,
         "noerr": 0,
         "x": 690,

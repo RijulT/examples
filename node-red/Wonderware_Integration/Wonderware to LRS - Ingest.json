@@ -1,1 +1,1697 @@
-[{"id":"45d88e1b.5bec7","type":"tab","label":"Wonderware to LRS - Ingest","disabled":false,"info":""},{"id":"c3d9c650.62efb8","type":"switch","z":"45d88e1b.5bec7","name":"SWITCH","property":"action","propertyType":"msg","rules":[{"t":"eq","v":"CREATE_JOB","vt":"str"},{"t":"eq","v":"INGEST_DATA","vt":"str"},{"t":"eq","v":"COMPLETE_JOB","vt":"str"}],"checkall":"true","repair":false,"outputs":3,"x":260,"y":300,"wires":[["862477e8.168db8"],["c79e597d.adfb28"],["918ba875.bbddc8"]]},{"id":"96f4a78c.f85218","type":"function","z":"45d88e1b.5bec7","name":"URL Builder","func":"\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method: 'POST',\n    url: global.get(\"baseURL\") + \"accounts/\" + flow.get(\"accountId\") + \"/jobs\",\n    payload:{\n        \"jobType\" : \"INGESTDATA\",\n        \"status\" : \"CREATED\",\n        \"datastream\" : flow.get(\"datastreamId\"),\n        \"spec\" : msg.ingestSpec\n        \n        \n    },\n    action: flow.get(\"action\"),\n};\n\nreturn msg;\n\n","outputs":1,"noerr":0,"x":770,"y":220,"wires":[["bf3803d4.6b597"]]},{"id":"bf3803d4.6b597","type":"http request","z":"45d88e1b.5bec7","name":"Execute Request","method":"use","ret":"obj","paytoqs":false,"url":"","tls":"","persist":false,"proxy":"","authType":"","x":1090,"y":300,"wires":[["8c342fa1.0cddf","a0875a97.780928","e3bd50b1.93f65"]]},{"id":"9511ff7a.258dd","type":"function","z":"45d88e1b.5bec7","name":"get JobId & Set Task","func":"\nif(msg.action == \"CREATE_JOB\"){\n    msg.action = 'INGEST_DATA';\n    flow.set(\"action\",\"INGEST_DATA\");\n    flow.set(\"jobId\",msg.payload.id);\n}else if(msg.action == \"INGEST_DATA\"){\n    msg.jobId = msg.url.split('/')[10];\n    msg.action = \"COMPLETE_JOB\";\n    flow.set(\"action\",msg.action);\n}\nelse if (msg.action == \"COMPLETE_JOB\")\n{\n    msg.action = \"\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":140,"y":360,"wires":[["c3d9c650.62efb8"]]},{"id":"918ba875.bbddc8","type":"function","z":"45d88e1b.5bec7","name":"URL Builder","func":"msg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method:'PUT',\n    url: global.get(\"baseURL\") + \"accounts/\" + flow.get(\"accountId\") + \"/jobs/\" + msg.jobId,\n    payload: {\n    \"jobType\" : \"INGESTDATA\",\n        \"status\" : \"COMPLETED\",\n    },\n    action: flow.get(\"action\")\n};\n\nreturn msg;\n","outputs":1,"noerr":0,"x":650,"y":380,"wires":[["bf3803d4.6b597"]]},{"id":"2965ff0e.7c075","type":"function","z":"45d88e1b.5bec7","name":"URL Builder","func":"var pl = msg.payload\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"content-type\":\"text/csv\"\n    },\n    method:'POST',\n    url: global.get(\"baseURL\") + \"accounts/\" + flow.get(\"accountId\") + \n    \"/datastreams/\"+ flow.get(\"datastreamId\") + \n    \"/ingestdata/\" + flow.get(\"jobId\") + \"/inputs\",\n    payload:pl,\n    action: flow.get(\"action\")\n};\n\nreturn msg;\n","outputs":1,"noerr":0,"x":770,"y":300,"wires":[["bf3803d4.6b597"]]},{"id":"8c342fa1.0cddf","type":"link out","z":"45d88e1b.5bec7","name":"Response output","links":["faa669ac.064228"],"x":1255,"y":300,"wires":[]},{"id":"862477e8.168db8","type":"change","z":"45d88e1b.5bec7","name":"Ingest Settings","rules":[{"t":"set","p":"ingestSpec","pt":"msg","to":"{\"format\":{\"entityIdentifier\":\"entity\",\"timeIdentifier\":\"time\",\"signalIdentifier\":\"signal\",\"valueIdentifier\":\"value\",\"timeFormat\":\"iso_8601\"}}","tot":"json"}],"action":"","property":"","from":"","to":"","reg":false,"x":520,"y":220,"wires":[["96f4a78c.f85218"]]},{"id":"faa669ac.064228","type":"link in","z":"45d88e1b.5bec7","name":"","links":["8c342fa1.0cddf"],"x":15,"y":300,"wires":[["9511ff7a.258dd"]]},{"id":"6268fb06.f09b54","type":"function","z":"45d88e1b.5bec7","name":"Falkonry Settings","func":"var topic = msg.topic;\n//var bURL = msg.payload.baseURL;\nif(topic === \"default\")\n{\nglobal.set(\"baseURL\",\"https://dev.falkonry.ai/api/1.1/\");\nglobal.set(\"falkonryToken\",\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE4ODQwNzM4MzUsICJlbWFpbCIgOiAia2V2YWwuYmhhbnVzaGFsaUBmYWxrb25yeS5jb20iLCAibmFtZSIgOiAia2V2YWwuYmhhbnVzaGFsaUBmYWxrb25yeS5jb20iLCAic2Vzc2lvbiIgOiAiNjIzNDU1NzU2MzYzMDE0MTQ0IiB9.hXNfyXcT9xIfqIPxqOeheLrXuP9TAdhBLyyUjcc97-0\");\nglobal.set(\"wwURL\",\"https://insight.connect.aveva.com/apis/Historian/v2/\");\nglobal.set(\"wwToken\",\"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjNjNmRhMGRiLTU5ZDgtNDhjOS1hY2MzLTBlMjJiNTU0ZGI5MSJ9.eyJ0eXBlIjoic2VydmljZSIsInZlcnNpb24iOiIxLjAiLCJ0ZW5hbnRpZCI6IjM3M2FhOTdiLWVhNTMtNDk3NS05NDIyLWE4MzgzYWY3ZTE0ZSIsInNpaWQiOiJkZDU0NjQyOS04ZGQ0LTQ1NzQtODA0ZS03NTFhNTk4ZTUxNzEiLCJqdGkiOiI5NmFlNDk1Yy04YTJhLTRiYzEtOWVmNS05MjdkOWRlMGM5MmYiLCJpc3MiOiJwcm9vZm9maWRlbnRpdHlzZXJ2aWNlIn0.IKca5z7oP6M1RFK-qn6gv46u9Nf2fAzWFre3fDe81bWUcQBYdkvCq2Gca696rXd8IwLLdMGOjFWJ0H7dd43889jZSMUEJiw1Mq4wAUk53_ujHAM9d9Ztp1gZWS8d0kIADSXbOZwPoYuhJoO3eQ15YyzsDjkQ5lTXYx6Cqhs2qlqQr0DcW9Wr39bRNJ6H-SitqshDqSEYwsUtno5FsAnqoFeMuApTQm3UgerFlCfICZgg7n5P0nbzZJJ0D83PYjbemGoqI5k2G9ktGHPQ3UciL2mdqSf5srxP6Hc1lDEQHSqjMa-EJcwnruE3D0SCIq0VoDpNqDJx-dFfCKDkgijSKA\");\nglobal.set(\"wwQuery\",\"ProcessValues?$filter=DateTime ge 2016-02-17T10:30:00.000000Z and DateTime le 2016-02-21T10:28:50.00000Z&RetrievalMode=Full&TagFilter=startswith(FQN,'WideData')\");\nflow.set(\"accountId\",\"600756889714286592\");\nflow.set(\"name\",\"WW_Insights_Data_Default\");\nflow.set(\"isBatch\",false);\nflow.set(\"contentType\", \"application/json\");\nflow.set(\"action\",\"CREATE_JOB\");\nmsg.issue = \"Default input selected; creating datastream\";\nreturn msg;\n}\nelse if(topic === \"user\")\n{\nglobal.set(\"falkonryToken\",msg.payload.falkonryToken);\nglobal.set(\"baseURL\",msg.payload.baseURL);\nglobal.set(\"wwURL\",msg.payload.wwURL);\nglobal.set(\"wwToken\",msg.payload.wwToken);\nglobal.set(\"wwQuery\",msg.payload.wwQuery);\nflow.set(\"accountId\",msg.payload.accountId);\nflow.set(\"name\",msg.payload.name);\nflow.set(\"isBatch\",msg.payload.isBatch);\nflow.set(\"contentType\", \"application/json\");\nflow.set(\"action\",\"CREATE_JOB\");\n}\nmsg.issue = \"User configuration received,creating datastream\";\nreturn msg;","outputs":1,"noerr":0,"x":270,"y":80,"wires":[["d47e537c.dac2d","2152c389.43f9dc"]]},{"id":"d47e537c.dac2d","type":"function","z":"45d88e1b.5bec7","name":"Build URL","func":"msg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method: 'POST',\n    url: global.get(\"baseURL\") + \"accounts/\" + flow.get(\"accountId\") + \"/datastreams\",\n    payload:{\n        \"name\": flow.get(\"name\"),\n        \"isBatch\": flow.get(\"isBatch\")\n    }\n};\nreturn msg;","outputs":1,"noerr":0,"x":480,"y":60,"wires":[["e7150538.556fc8"]]},{"id":"e7150538.556fc8","type":"http request","z":"45d88e1b.5bec7","name":"","method":"use","ret":"txt","paytoqs":false,"url":"","tls":"","proxy":"","authType":"","x":630,"y":60,"wires":[["e4a5ffaf.b8bac","40b6dd82.dcadf4"]]},{"id":"e4a5ffaf.b8bac","type":"json","z":"45d88e1b.5bec7","name":"","property":"payload","action":"","pretty":false,"x":790,"y":60,"wires":[["98b9eb36.796698"]]},{"id":"98b9eb36.796698","type":"change","z":"45d88e1b.5bec7","name":"","rules":[{"t":"set","p":"datastreamId","pt":"flow","to":"payload.id","tot":"msg"}],"action":"","property":"","from":"","to":"","reg":false,"x":1000,"y":60,"wires":[["2eb199f4.289866","ee7ff132.03596"]]},{"id":"ee7ff132.03596","type":"link out","z":"45d88e1b.5bec7","name":"Create Datastream Op","links":["3c5bf9e4.8c5336"],"x":1175,"y":60,"wires":[]},{"id":"3c5bf9e4.8c5336","type":"link in","z":"45d88e1b.5bec7","name":"Ingestion Ip","links":["ee7ff132.03596"],"x":40,"y":220,"wires":[["6e2b6ae3.f31f44"]]},{"id":"6e2b6ae3.f31f44","type":"change","z":"45d88e1b.5bec7","name":"","rules":[{"t":"set","p":"action","pt":"msg","to":"action","tot":"flow"}],"action":"","property":"","from":"","to":"","reg":false,"x":160,"y":220,"wires":[["c3d9c650.62efb8"]]},{"id":"f49947cd.028d78","type":"http request","z":"45d88e1b.5bec7","name":"Get Data","method":"use","ret":"txt","paytoqs":false,"url":"","tls":"","persist":false,"proxy":"","authType":"","x":360,"y":560,"wires":[["49671f06.2cd97","f6773e7e.0960c","727ff0a3.ab818"]]},{"id":"49671f06.2cd97","type":"json","z":"45d88e1b.5bec7","name":"","property":"payload","action":"","pretty":false,"x":510,"y":560,"wires":[["52cedfdf.0ee51"]]},{"id":"52cedfdf.0ee51","type":"function","z":"45d88e1b.5bec7","name":"Transform","func":"var value = [];\nvar entity = [];\nvar DateTime = [];\nvar signal = [];\nvar combine = \"time,entity,signal,value\\n\";\nfor (var i = 0; i < msg.payload.value.length ; i++)\n{\n    \n    if(msg.payload.value[i].FQN !='WideData.entity')\n    {\n        DateTime += msg.payload.value[i].DateTime + \",\";\n        entity += \"machine1\" + \",\";\n        signal += msg.payload.value[i].FQN.split('.').pop() + \",\";\n        value += msg.payload.value[i].Value + \",\";\n    }\n    \n}\nDateTime = DateTime.split(\",\");\nentity = entity.split(\",\");\nsignal = signal.split(\",\");\nvalue = value.split(\",\");\nfor (i = 0; i < msg.payload.value.length ; i++)\n{\n    \n    combine += DateTime[i]+ \",\" +entity[i]+ \",\" + signal[i]+ \",\" +value[i]+ \"\\n\";\n}\ncombine = combine.split('\\n');\ncombine = combine.slice(0,4545);\ncombine = combine.join('\\n');\nflow.set(\"combine\",combine);\nreturn msg;\n","outputs":1,"noerr":0,"x":640,"y":560,"wires":[["3be40f5a.b69b7"]]},{"id":"dac52982.ff0408","type":"function","z":"45d88e1b.5bec7","name":"Wonderware settings","func":"flow.set(\"add\",\"\");\nmsg = {\n    headers:{\n       \"Authorization\":'Bearer ' + global.get(\"wwToken\"),\n    },\n    method:\"GET\",\n    url: global.get(\"wwURL\") + global.get(\"wwQuery\")\n}\nreturn msg;\n","outputs":1,"noerr":0,"x":160,"y":560,"wires":[["f49947cd.028d78"]]},{"id":"3be40f5a.b69b7","type":"change","z":"45d88e1b.5bec7","name":"Next Page of Data","rules":[{"t":"set","p":"nextPage","pt":"flow","to":"payload[\"@odata.nextLink\"]","tot":"msg"}],"action":"","property":"","from":"","to":"","reg":false,"x":830,"y":560,"wires":[["e6d9a87e.1378c8"]]},{"id":"1427d52f.3bbc6b","type":"link out","z":"45d88e1b.5bec7","name":"","links":["c27bebf4.1fc058"],"x":495,"y":660,"wires":[]},{"id":"9fc01411.501c58","type":"function","z":"45d88e1b.5bec7","name":"URL next 5k records","func":"msg = {\n    headers:{\n       \"Authorization\":'Bearer ' + global.get(\"wwToken\"),\n    },\n    method:\"GET\",\n    url:flow.get(\"nextPage\")\n}\nreturn msg;","outputs":1,"noerr":0,"x":300,"y":700,"wires":[["2398e92c.57b696"]]},{"id":"d8e2beb1.795d1","type":"function","z":"45d88e1b.5bec7","name":"Transform","func":"if (typeof msg.payload[\"@odata.nextLink\"] !== 'undefined')\n{\n    flow.set(\"nextPage\",msg.payload[\"@odata.nextLink\"]);\n    \n}\nelse{\n    flow.set(\"nextPage\",\"None\");\n    \n}\nvar add = flow.get(\"add\");\nvar value = [];\nvar entity = [];\nvar DateTime = [];\nvar signal = [];\nvar combine = \"\";\nfor (var i = 0; i < msg.payload.value.length ; i++)\n{\n    \n    if(msg.payload.value[i].FQN !='WideData.entity')\n    {\n        DateTime += msg.payload.value[i].DateTime + \",\";\n        entity += \"machine1\" + \",\";\n        signal += msg.payload.value[i].FQN.split('.').pop() + \",\";\n        value += msg.payload.value[i].Value + \",\";\n    }\n    \n}\nDateTime = DateTime.split(\",\");\nentity = entity.split(\",\");\nsignal = signal.split(\",\");\nvalue = value.split(\",\");\nfor (i = 0; i < msg.payload.value.length ; i++)\n{\n    \n    combine += DateTime[i]+ \",\" +entity[i]+ \",\" + signal[i]+ \",\" +value[i]+ \"\\n\";\n}\ncombine = combine.split('\\n');\ncombine = combine.slice(0,4545);\ncombine = combine.join('\\n');\nadd += \"\\n\" + combine;\n\nflow.set(\"add\",add);\n\nmsg.payload = flow.get(\"combine\") + \"\\n\" + flow.get(\"add\");\nreturn msg;\n","outputs":1,"noerr":0,"x":780,"y":700,"wires":[["afbdc732.3502e8"]]},{"id":"2398e92c.57b696","type":"http request","z":"45d88e1b.5bec7","name":"Get Data","method":"use","ret":"txt","paytoqs":false,"url":"","tls":"","persist":false,"proxy":"","authType":"","x":500,"y":700,"wires":[["d7fbcb0f.56f618","45f21b63.386324"]]},{"id":"d7fbcb0f.56f618","type":"json","z":"45d88e1b.5bec7","name":"","property":"payload","action":"","pretty":false,"x":650,"y":700,"wires":[["d8e2beb1.795d1"]]},{"id":"224926c1.b6ecba","type":"link in","z":"45d88e1b.5bec7","name":"","links":["afbdc732.3502e8"],"x":15,"y":700,"wires":[["77f3ba06.a958a4"]]},{"id":"afbdc732.3502e8","type":"link out","z":"45d88e1b.5bec7","name":"","links":["224926c1.b6ecba"],"x":895,"y":700,"wires":[]},{"id":"77f3ba06.a958a4","type":"switch","z":"45d88e1b.5bec7","name":"All records?","property":"nextPage","propertyType":"flow","rules":[{"t":"eq","v":"None","vt":"str"},{"t":"else"}],"checkall":"true","repair":false,"outputs":2,"x":270,"y":640,"wires":[["1427d52f.3bbc6b","5332eb0b.73cab4"],["9fc01411.501c58"]]},{"id":"c27bebf4.1fc058","type":"link in","z":"45d88e1b.5bec7","name":"","links":["1427d52f.3bbc6b"],"x":635,"y":300,"wires":[["2965ff0e.7c075"]]},{"id":"9373df77.2b39c","type":"link in","z":"45d88e1b.5bec7","name":"","links":["c79e597d.adfb28"],"x":15,"y":560,"wires":[["dac52982.ff0408"]]},{"id":"c79e597d.adfb28","type":"link out","z":"45d88e1b.5bec7","name":"","links":["9373df77.2b39c"],"x":420,"y":300,"wires":[]},{"id":"425879ec.2fd1e8","type":"comment","z":"45d88e1b.5bec7","name":"Fetch Data From WW (flow below)","info":"","x":560,"y":260,"wires":[]},{"id":"9050ac4c.70ce1","type":"comment","z":"45d88e1b.5bec7","name":"Create New Datastream","info":"","x":100,"y":20,"wires":[]},{"id":"cbcb2f77.c1b69","type":"comment","z":"45d88e1b.5bec7","name":"Ingest Data into Falkonry","info":"","x":110,"y":180,"wires":[]},{"id":"3086e221.a52f9e","type":"comment","z":"45d88e1b.5bec7","name":"Get data from WW insights","info":"","x":110,"y":480,"wires":[]},{"id":"4c46449f.d870ac","type":"ui_text","z":"45d88e1b.5bec7","group":"ece64cd6.d6564","order":1,"width":6,"height":3,"name":"Progress Tab","label":"","format":"{{msg.issue}}","layout":"col-center","x":1430,"y":220,"wires":[]},{"id":"45a2cf99.2b431","type":"ui_form","z":"45d88e1b.5bec7","name":"","label":"","group":"2b8b182d.acb1e8","order":1,"width":10,"height":9,"options":[{"label":"<<Falkonry-server-address>>","value":"baseURL","type":"text","required":true},{"label":"Falkonry-Token","value":"falkonryToken","type":"password","required":true},{"label":"Account Id","value":"accountId","type":"text","required":true},{"label":"Datastream Name","value":"name","type":"text","required":true},{"label":"Is Batch","value":"isBatch","type":"switch","required":true},{"label":"<<Wonderware Insights(wwi)-ingest-address>>","value":"wwURL","type":"text","required":true},{"label":"wwi-Token","value":"wwToken","type":"password","required":true},{"label":"<<wwi-urlQuery>>","value":"wwQuery","type":"text","required":true}],"formValue":{"baseURL":"","falkonryToken":"","accountId":"","name":"","isBatch":false,"wwURL":"","wwToken":"","wwQuery":""},"payload":"","submit":"submit","cancel":"cancel","topic":"user","x":70,"y":100,"wires":[["6268fb06.f09b54"]]},{"id":"2eb199f4.289866","type":"function","z":"45d88e1b.5bec7","name":"Set ui message","func":"msg.issue = \"New Datastream \"+flow.get(\"name\") + \" has been created.\\n datastream id is: \" + flow.get(\"datastreamId\") + \". \\n\\n Preparing to ingestdata from Wonderware Insights...\";\nreturn msg;","outputs":1,"noerr":0,"x":1100,"y":140,"wires":[["4c46449f.d870ac"]]},{"id":"d3e9e215.8aa0c","type":"ui_button","z":"45d88e1b.5bec7","name":"Run Default","group":"2b8b182d.acb1e8","order":3,"width":6,"height":1,"passthru":false,"label":"Use Default Configurations","tooltip":"","color":"","bgcolor":"green","icon":"","payload":"","payloadType":"str","topic":"default","x":90,"y":60,"wires":[["6268fb06.f09b54"]]},{"id":"a0875a97.780928","type":"function","z":"45d88e1b.5bec7","name":"Set ui message","func":"if ((msg.statusCode == 201 || msg.statusCode == 200)  && msg.action == \"CREATE_JOB\")\n{\n    msg.issue = \"New data ingest job created. \\n Connecting to Wonderware\";\n    \n}\nelse if ((msg.statusCode == 200) && msg.action == \"INGEST_DATA\")\n{\n    msg.issue = \"Wonderware data ingested. \\n Terminating ingest job and starting data_digest\";\n    \n}\nelse if (( msg.statusCode == 200) && msg.action == \"COMPLETE_JOB\")\n{\n    msg.issue = \"Ingest job completed;Check digest job status on Falkonry\";\n    \n}\nelse \n{\n    msg.issue =  msg.action + \"error; \" + \" Status Code: \"+ msg.statusCode + \". \\n Kindly try again or check node-red flow\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":1100,"y":220,"wires":[["4c46449f.d870ac"]]},{"id":"f6773e7e.0960c","type":"function","z":"45d88e1b.5bec7","name":"Set ui message","func":"if(msg.statusCode === 200)\n{msg.issue = \"Successfully connected to Wonderware Insights. \\n Found first 5000 records; fetching the rest\";}\nelse if(msg.statusCode !== 200)\n{\n    msg.issue = \"Error in connecting to Wonderware Insights; \" + \" Status Code\"+ msg.statusCode + \"Kindly try again or check node-red flow\";\n}\nreturn msg;","outputs":1,"noerr":0,"x":1100,"y":460,"wires":[["4c46449f.d870ac"]]},{"id":"5332eb0b.73cab4","type":"function","z":"45d88e1b.5bec7","name":"Set ui message","func":"msg.issue = \"Obtained all records from Wonderware Insights. Pushing data into Falkonry\";\nreturn msg;","outputs":1,"noerr":0,"x":1100,"y":600,"wires":[["4c46449f.d870ac"]]},{"id":"c940d4b8.704338","type":"inject","z":"45d88e1b.5bec7","name":"","topic":"","payload":"","payloadType":"date","repeat":"","crontab":"","once":true,"onceDelay":0.1,"x":130,"y":800,"wires":[["5660e346.9358bc"]]},{"id":"5660e346.9358bc","type":"change","z":"45d88e1b.5bec7","name":"Progress Tab Default","rules":[{"t":"set","p":"issue","pt":"msg","to":"Submit configs or run default to Begin!","tot":"str"}],"action":"","property":"","from":"","to":"","reg":false,"x":360,"y":800,"wires":[["8a9eac58.02675"]]},{"id":"8a9eac58.02675","type":"link out","z":"45d88e1b.5bec7","name":"","links":["f3d33487.5058a8"],"x":515,"y":800,"wires":[]},{"id":"f3d33487.5058a8","type":"link in","z":"45d88e1b.5bec7","name":"","links":["8a9eac58.02675"],"x":1315,"y":400,"wires":[["4c46449f.d870ac"]]},{"id":"e3bd50b1.93f65","type":"debug","z":"45d88e1b.5bec7","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"true","targetType":"full","x":1090,"y":360,"wires":[]},{"id":"727ff0a3.ab818","type":"debug","z":"45d88e1b.5bec7","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"true","targetType":"full","x":490,"y":500,"wires":[]},{"id":"45f21b63.386324","type":"debug","z":"45d88e1b.5bec7","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"true","targetType":"full","x":690,"y":760,"wires":[]},{"id":"2152c389.43f9dc","type":"link out","z":"45d88e1b.5bec7","name":"","links":["515f5893.2199b8"],"x":435,"y":100,"wires":[]},{"id":"515f5893.2199b8","type":"link in","z":"45d88e1b.5bec7","name":"","links":["2152c389.43f9dc"],"x":1295,"y":140,"wires":[["4c46449f.d870ac"]]},{"id":"e6d9a87e.1378c8","type":"link out","z":"45d88e1b.5bec7","name":"","links":["bbb13b54.64cb68"],"x":975,"y":560,"wires":[]},{"id":"bbb13b54.64cb68","type":"link in","z":"45d88e1b.5bec7","name":"","links":["e6d9a87e.1378c8"],"x":35,"y":620,"wires":[["77f3ba06.a958a4"]]},{"id":"a72bb5da.05b2d8","type":"comment","z":"45d88e1b.5bec7","name":"Progress Tab Reset on deploy","info":"","x":120,"y":760,"wires":[]},{"id":"40b6dd82.dcadf4","type":"debug","z":"45d88e1b.5bec7","name":"","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"true","targetType":"full","x":770,"y":140,"wires":[]},{"id":"ece64cd6.d6564","type":"ui_group","z":"","name":"Progress Tab","tab":"e0c37d21.9f9f1","disp":true,"width":8,"collapse":true},{"id":"2b8b182d.acb1e8","type":"ui_group","z":"","name":"Get Configurations","tab":"e0c37d21.9f9f1","disp":true,"width":"10","collapse":false},{"id":"e0c37d21.9f9f1","type":"ui_tab","z":"","name":"WWI Integration - LRS Ingest","icon":"dashboard","order":1,"disabled":false,"hidden":false}]
+[
+    {
+        "id": "e3fdcdd0.aa5f8",
+        "type": "tab",
+        "label": "Wonderware to LRS - Ingest",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "131afdce.08ed02",
+        "type": "switch",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "SWITCH",
+        "property": "action",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "CREATE_JOB",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "INGEST_DATA",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "COMPLETE_JOB",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 340,
+        "y": 560,
+        "wires": [
+            [
+                "92d921d5.9d0b1"
+            ],
+            [
+                "9b6f9c5a.80e25"
+            ],
+            [
+                "8463bc3.77fa74"
+            ]
+        ]
+    },
+    {
+        "id": "f6ca06b7.bbb948",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "URL Builder",
+        "func": "flow.set(\"newDatastream_flag\",false);\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method: 'POST',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \"/jobs\",\n    payload:{\n        \"jobType\" : flow.get(\"jobType\"),\n        \"status\" : \"CREATED\",\n        \"datastream\" : flow.get(\"datastreamId\"),\n        \"spec\" : msg.ingestSpec\n        \n        \n    },\n    action: flow.get(\"action\"),\n};\n\nreturn msg;\n\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 790,
+        "y": 500,
+        "wires": [
+            [
+                "65c82700.cb9528"
+            ]
+        ]
+    },
+    {
+        "id": "65c82700.cb9528",
+        "type": "http request",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Ingest Jobs",
+        "method": "use",
+        "ret": "obj",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 1130,
+        "y": 560,
+        "wires": [
+            [
+                "a944dcd8.83281",
+                "4014640c.b39a9c",
+                "655d0ddf.bfa374"
+            ]
+        ]
+    },
+    {
+        "id": "8cce4840.0b71d8",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "get JobId & Set Task",
+        "func": "\nif(msg.action == \"CREATE_JOB\"){\n    msg.action = 'INGEST_DATA';\n    flow.set(\"action\",\"INGEST_DATA\");\n    flow.set(\"jobId\",msg.payload.id);\n}else if(msg.action == \"INGEST_DATA\"){\n    msg.jobId = msg.url.split('/')[10];\n    msg.action = \"COMPLETE_JOB\";\n    flow.set(\"action\",msg.action);\n}\nelse if (msg.action == \"COMPLETE_JOB\")\n{\n    msg.action = \"\";\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 160,
+        "y": 640,
+        "wires": [
+            [
+                "131afdce.08ed02"
+            ]
+        ]
+    },
+    {
+        "id": "8463bc3.77fa74",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "URL Builder",
+        "func": "msg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method:'PUT',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \"/jobs/\" + msg.jobId,\n    payload: {\n    \"jobType\" : \"INGESTDATA\",\n        \"status\" : \"COMPLETED\",\n    },\n    action: flow.get(\"action\")\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 670,
+        "y": 620,
+        "wires": [
+            [
+                "65c82700.cb9528"
+            ]
+        ]
+    },
+    {
+        "id": "a1a7984a.bdac48",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "URL Builder",
+        "func": "var pl = msg.payload\nmsg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"content-type\":\"text/csv\"\n    },\n    method:'POST',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \n    \"/datastreams/\"+ flow.get(\"datastreamId\") + \n    \"/ingestdata/\" + flow.get(\"jobId\") + \"/inputs\",\n    payload:pl,\n    action: flow.get(\"action\")\n};\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 870,
+        "y": 560,
+        "wires": [
+            [
+                "65c82700.cb9528"
+            ]
+        ]
+    },
+    {
+        "id": "b6226300.e27d1",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Response output",
+        "links": [
+            "3893aa39.9961b6"
+        ],
+        "x": 1395,
+        "y": 660,
+        "wires": []
+    },
+    {
+        "id": "92d921d5.9d0b1",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Ingest Settings",
+        "rules": [
+            {
+                "t": "set",
+                "p": "ingestSpec",
+                "pt": "msg",
+                "to": "{\"format\":{\"entityIdentifier\":\"entity\",\"timeIdentifier\":\"time\",\"signalIdentifier\":\"signal\",\"valueIdentifier\":\"value\",\"timeFormat\":\"iso_8601\"}}",
+                "tot": "json"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 560,
+        "y": 500,
+        "wires": [
+            [
+                "f6ca06b7.bbb948"
+            ]
+        ]
+    },
+    {
+        "id": "3893aa39.9961b6",
+        "type": "link in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "b6226300.e27d1"
+        ],
+        "x": 15,
+        "y": 640,
+        "wires": [
+            [
+                "8cce4840.0b71d8"
+            ]
+        ]
+    },
+    {
+        "id": "e8e4d285.7333b",
+        "type": "link in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Ingestion Ip",
+        "links": [
+            "ee7ff132.03596",
+            "c865300d.52838",
+            "f072ba30.6f0998",
+            "b6f8f9c7.156b58",
+            "4a928d1a.fe1924"
+        ],
+        "x": 40,
+        "y": 500,
+        "wires": [
+            [
+                "5a64d314.cd227c"
+            ]
+        ]
+    },
+    {
+        "id": "5a64d314.cd227c",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Set Action",
+        "rules": [
+            {
+                "t": "set",
+                "p": "action",
+                "pt": "msg",
+                "to": "action",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 170,
+        "y": 500,
+        "wires": [
+            [
+                "131afdce.08ed02"
+            ]
+        ]
+    },
+    {
+        "id": "ec053cbd.1ec3b",
+        "type": "link in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "1427d52f.3bbc6b",
+            "5d2d4d8e.d9a0c4"
+        ],
+        "x": 755,
+        "y": 560,
+        "wires": [
+            [
+                "a1a7984a.bdac48"
+            ]
+        ]
+    },
+    {
+        "id": "9b6f9c5a.80e25",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "9373df77.2b39c",
+            "1fdd6e5.e97ce92"
+        ],
+        "x": 475,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "d984b95e.02bf98",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Get WW data (flow below)",
+        "info": "",
+        "x": 610,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "199f08b7.ce7ad7",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Create New Datastream",
+        "info": "",
+        "x": 860,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "c18ee603.68e0d8",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Ingest Data into Falkonry",
+        "info": "",
+        "x": 110,
+        "y": 460,
+        "wires": []
+    },
+    {
+        "id": "da2f4604.a359c8",
+        "type": "ui_text",
+        "z": "e3fdcdd0.aa5f8",
+        "group": "2a8dd642.dd1bda",
+        "order": 1,
+        "width": 6,
+        "height": 3,
+        "name": "Progress Tab",
+        "label": "",
+        "format": "{{msg.issue}}",
+        "layout": "col-center",
+        "x": 1970,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "1f7dce0a.994a02",
+        "type": "ui_form",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Form UI",
+        "label": "",
+        "group": "d9501637.838748",
+        "order": 1,
+        "width": 10,
+        "height": 11,
+        "options": [
+            {
+                "label": "<<Falkonry-server-address>>",
+                "value": "baseURL",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "Falkonry-Token",
+                "value": "falkonryToken",
+                "type": "password",
+                "required": true
+            },
+            {
+                "label": "Account Id",
+                "value": "accountId",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "Datastream Name",
+                "value": "datastreamName",
+                "type": "text",
+                "required": false
+            },
+            {
+                "label": "Falkonry jobType",
+                "value": "jobType",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "Is Batch",
+                "value": "isBatch",
+                "type": "switch",
+                "required": true
+            },
+            {
+                "label": "<<Wonderware Insights(wwi)-ingest-address>>",
+                "value": "wonderware_ingest_URL",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "wwi-Token",
+                "value": "wonderware_ingest_Token",
+                "type": "password",
+                "required": true
+            },
+            {
+                "label": "Query_StartDate (iso_format only)",
+                "value": "query_startDate",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "Query_EndDate(iso_format only)",
+                "value": "query_endDate",
+                "type": "text",
+                "required": true
+            },
+            {
+                "label": "Historian Data Source",
+                "value": "query_FQN",
+                "type": "text",
+                "required": true
+            }
+        ],
+        "formValue": {
+            "baseURL": "",
+            "falkonryToken": "",
+            "accountId": "",
+            "datastreamName": "",
+            "jobType": "",
+            "isBatch": false,
+            "wonderware_ingest_URL": "",
+            "wonderware_ingest_Token": "",
+            "query_startDate": "",
+            "query_endDate": "",
+            "query_FQN": ""
+        },
+        "payload": "",
+        "submit": "submit",
+        "cancel": "Clear Fields",
+        "topic": "user",
+        "x": 50,
+        "y": 360,
+        "wires": [
+            [
+                "4a135bb2.2dfe54"
+            ]
+        ]
+    },
+    {
+        "id": "a944dcd8.83281",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Set ui message",
+        "func": "if ((msg.statusCode == 201 || msg.statusCode == 200)  && msg.action == \"CREATE_JOB\")\n{\n    msg.issue = \"New data ingest job created. \\n Connecting to Wonderware\";\n    msg.payload = \"\";\n    \n}\nelse if ((msg.statusCode == 200) && msg.action == \"INGEST_DATA\")\n{\n    msg.issue = \"Wonderware data ingested. \\n Terminating ingest job and starting data_digest\";\n    msg.payload = \"\";\n    \n}\nelse if (( msg.statusCode == 200) && msg.action == \"COMPLETE_JOB\")\n{\n    msg.issue = \"Ingest job completed;Check digest job status on Falkonry\";\n    msg.payload = \"\";\n    \n}\nelse \n{\n    var dt = new Date();\n    if (typeof msg.payload.message !== 'undefined')\n    {msg.issue =  dt + \"\\n\" + msg.action + \" error; Failed http request\" + \" Status Code: \"+ msg.statusCode + \". \\n Error Message :\" + msg.payload.message;}\n    else\n    {\n        msg.issue =  dt + \"\\n\" + msg.action + \" error; Failed http request\" + \" Status Code: \"+ msg.statusCode + \". \\n Error Message :\" + msg.payload;\n    }\n    msg.payload = msg.issue;\n    flow.set(\"failed_action\",msg.action);\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1640,
+        "y": 640,
+        "wires": [
+            [
+                "f3156892.e89d28",
+                "da2f4604.a359c8"
+            ]
+        ]
+    },
+    {
+        "id": "adde7e38.20912",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Set ui message",
+        "func": "if(msg.statusCode === 200)\n{\n    msg.issue = \"Successfully connected to Wonderware Insights. \\n Found page \" +flow.get(\"execution_counter\")+ \", fetching the next pages\";\n    msg.payload = \"\";\n    \n}\nelse if(msg.statusCode !== 200)\n{\n    var dt = new Date();\n    if (typeof msg.payload.message !== 'undefined')\n    {\n        msg.issue =  dt + \"\\n\" + \"Error in connecting to Wonderware Insights; \" + \" Status Code\"+ msg.statusCode + \". \\n Error Message :\"+ msg.payload.message;\n        \n    }\n    else\n    {\n        msg.issue =  dt + \"\\n\" + \"Error in connecting to Wonderware Insights; \" + \" Status Code: \"+ msg.statusCode + \". \\n Error Message :\" + msg.payload;\n    }\n    msg.payload = msg.issue;\n}\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1620,
+        "y": 740,
+        "wires": [
+            [
+                "f3156892.e89d28"
+            ]
+        ]
+    },
+    {
+        "id": "a4646dba.28f12",
+        "type": "ui_form",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Form File",
+        "label": "<b><h3>OR Get Configurations from a Yaml File </b></h3>",
+        "group": "d9501637.838748",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "options": [
+            {
+                "label": "Enter the file-path of your config file",
+                "value": "fileName",
+                "type": "text",
+                "required": true
+            }
+        ],
+        "formValue": {
+            "fileName": ""
+        },
+        "payload": "",
+        "submit": "Use File Configurations",
+        "cancel": "Clear",
+        "topic": "default",
+        "x": 60,
+        "y": 240,
+        "wires": [
+            [
+                "4a135bb2.2dfe54"
+            ]
+        ]
+    },
+    {
+        "id": "4a135bb2.2dfe54",
+        "type": "switch",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "property": "topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "default",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "user",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 170,
+        "y": 300,
+        "wires": [
+            [
+                "fcd7c025.442a4"
+            ],
+            [
+                "f4377bb6.3ee528"
+            ]
+        ]
+    },
+    {
+        "id": "fcd7c025.442a4",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "filename",
+        "rules": [
+            {
+                "t": "set",
+                "p": "filename",
+                "pt": "msg",
+                "to": "payload.fileName",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "issue",
+                "pt": "flow",
+                "to": "Creating new Datastream using File Configurations;",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 280,
+        "y": 240,
+        "wires": [
+            [
+                "1180434f.7786bd"
+            ]
+        ]
+    },
+    {
+        "id": "1180434f.7786bd",
+        "type": "file in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "filename": "",
+        "format": "utf8",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "none",
+        "x": 410,
+        "y": 240,
+        "wires": [
+            [
+                "f0520e3a.1ba5e"
+            ]
+        ]
+    },
+    {
+        "id": "f0520e3a.1ba5e",
+        "type": "yaml",
+        "z": "e3fdcdd0.aa5f8",
+        "property": "payload",
+        "name": "Yaml to JS",
+        "x": 550,
+        "y": 240,
+        "wires": [
+            [
+                "df7cec7d.7e26c"
+            ]
+        ]
+    },
+    {
+        "id": "df7cec7d.7e26c",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Falkonry Settings",
+        "func": "var newDs_flag = flow.get(\"newDatastream_flag\")\nif (newDs_flag === false)\n{\n    flow.set(\"jobType\",msg.payload.jobType);\n    return [null,msg];\n}\nelse\n{\nglobal.set(\"baseURL\",msg.payload.baseURL);\nglobal.set(\"falkonryToken\",msg.payload.falkonryToken);\nglobal.set(\"wwURL\",msg.payload.wonderware_ingest_URL);\nglobal.set(\"wwToken\",msg.payload.wonderware_ingest_Token);\nglobal.set(\"query_FQN\",msg.payload.query_FQN);\nglobal.set(\"query_startDate\",msg.payload.query_startDate);\nglobal.set(\"query_endDate\",msg.payload.query_endDate);\nflow.set(\"accountId\",msg.payload.accountId);\nflow.set(\"name\",msg.payload.datastreamName);\nflow.set(\"isBatch\",msg.payload.isBatch);\nflow.set(\"jobType\",msg.payload.jobType);\nflow.set(\"contentType\", \"application/json\");\nflow.set(\"action\",\"CREATE_JOB\");\nflow.set(\"execution_counter\",1);\nflow.set(\"state\",\"RESUME\");\nmsg.issue = flow.get(\"issue\");\nreturn [msg,null];\n}\n",
+        "outputs": 2,
+        "noerr": 0,
+        "x": 690,
+        "y": 300,
+        "wires": [
+            [
+                "b3a6641.d88db98"
+            ],
+            [
+                "b6f8f9c7.156b58"
+            ]
+        ]
+    },
+    {
+        "id": "f4377bb6.3ee528",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "issue",
+                "pt": "flow",
+                "to": "\"Input received successfully; creating Datastream\"",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 340,
+        "y": 340,
+        "wires": [
+            [
+                "df7cec7d.7e26c"
+            ]
+        ]
+    },
+    {
+        "id": "b3a6641.d88db98",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "New DS URL",
+        "func": "msg = {\n    headers:{\n       \"Authorization\":\"Bearer \" + global.get(\"falkonryToken\"),\n       \"Content-Type\": flow.get(\"contentType\")\n    },\n    method: 'POST',\n    url: global.get(\"baseURL\") + \"/api/1.1/accounts/\" + flow.get(\"accountId\") + \"/datastreams\",\n    payload:{\n        \"name\": flow.get(\"name\"),\n        \"isBatch\": flow.get(\"isBatch\")\n    }\n};\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 850,
+        "y": 240,
+        "wires": [
+            [
+                "d6fad854.187968"
+            ]
+        ]
+    },
+    {
+        "id": "d6fad854.187968",
+        "type": "http request",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "DS Req",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 1000,
+        "y": 240,
+        "wires": [
+            [
+                "c0c02a42.a22968",
+                "15924242.f4322e"
+            ]
+        ]
+    },
+    {
+        "id": "f9dee448.428a28",
+        "type": "json",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 1310,
+        "y": 240,
+        "wires": [
+            [
+                "1183947e.3dfbfc"
+            ]
+        ]
+    },
+    {
+        "id": "1183947e.3dfbfc",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Capture ID",
+        "rules": [
+            {
+                "t": "set",
+                "p": "datastreamId",
+                "pt": "flow",
+                "to": "payload.id",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1450,
+        "y": 240,
+        "wires": [
+            [
+                "f072ba30.6f0998"
+            ]
+        ]
+    },
+    {
+        "id": "f072ba30.6f0998",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Create Datastream Op",
+        "links": [
+            "e8e4d285.7333b"
+        ],
+        "x": 1575,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "c0c02a42.a22968",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Set ui message",
+        "func": "if (msg.statusCode === 201 || msg.statusCode === 200)\n{\nmsg.issue = \"New Datastream \"+flow.get(\"name\") + \" has been created.\\n datastream id is: \" + msg.payload.id + \". \\n\\n Preparing to ingestdata from Wonderware Insights...\";\nmsg.payload = \"\";\n}\nelse\n{\n    var dt = new Date();\n    msg.issue = dt + \"\\n Failed to create datastream due to failed http request.  Error Code: \" + msg.statusCode + \"\\n Error Message :\" + msg.payload;\n    msg.payload = msg.issue;\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1640,
+        "y": 440,
+        "wires": [
+            [
+                "f3156892.e89d28",
+                "da2f4604.a359c8"
+            ]
+        ]
+    },
+    {
+        "id": "8205c165.ec8d3",
+        "type": "http request",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "WW Get 1st page ",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 430,
+        "y": 780,
+        "wires": [
+            [
+                "11d316a7.1be669",
+                "adde7e38.20912"
+            ]
+        ]
+    },
+    {
+        "id": "11d316a7.1be669",
+        "type": "json",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "WW to JSON",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 620,
+        "y": 780,
+        "wires": [
+            [
+                "c4f0a248.5bfa8"
+            ]
+        ]
+    },
+    {
+        "id": "be26625c.23d28",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Transform 1st pg",
+        "func": "var value = [];\n//var entity2 = [];\nvar DateTime = [];\nvar signal = [];\nvar entity = [];\n//var counter;\nvar combine = \"time,entity,signal,value\\n\";\nvar queryFQN = global.get(\"query_FQN\");\nfor (var i = 0; i < msg.payload.value.length ; i++)\n{\n    \n    if(msg.payload.value[i].FQN !=queryFQN+ \".entity\")\n    {\n        DateTime += msg.payload.value[i].DateTime + \",\";\n        signal += msg.payload.value[i].FQN.split('.').pop() + \",\";\n        value += msg.payload.value[i].Value + \",\";\n    }\n    else\n    {\n        entity = msg.payload.value[i].Text + \",\";\n    }\n}\n\nDateTime = DateTime.slice(0,-1).split(\",\");\nsignal = signal.slice(0,-1).split(\",\");\nvalue = value.slice(0,-1).split(\",\");\nentity = entity.slice(0,-1).split(\",\");\nvar store = [];\nfor (i = 0; i < signal.length; i++)\n{\n    store += entity[0] + \",\";\n}\n\nentity = store.slice(0,-1).split(\",\");\nvar lst_dt = DateTime.slice(-1).pop();\nflow.set(\"last_DateTime\",lst_dt);\n/* Code in progress for handling multiple entities\nfor (var c = 0;c < signal.length;c++)\n{\n    for (var d = c+1; d < signal.length;d++)\n    {\n        if(signal[c]=== signal[d]){\n            isMatch = true;\n            break;\n        }\n    }\n    if (isMatch)\n    {\n        counter = d;\n        break;\n        \n   }\n}\n\nfor (i = 0; i < entity2.length; i++)\n{\n    entity += Array((counter)).fill(entity2[i]) + ',';\n}\nentity = entity.slice(0,-1).split(\",\");\nflow.set(\"counter\",(entity.length - signal.length));\nflow.set(\"last_entity\",entity.slice(-1).pop());\n*/\nfor (i = 0; i < signal.length; i++)\n{\n    \n    combine += DateTime[i]+ \",\" +entity[i]+ \",\" + signal[i]+ \",\" +value[i]+ \"\\n\";\n}\n\nflow.set(\"combine\",combine);\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1010,
+        "y": 780,
+        "wires": [
+            [
+                "8920b2d0.45f7e"
+            ]
+        ]
+    },
+    {
+        "id": "5ec6c5e3.0906cc",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Wonderware settings",
+        "func": "flow.set(\"add\",\"\");\nmsg = {\n    headers:{\n       \"Authorization\":'Bearer ' + global.get(\"wwToken\"),\n    },\n    method:\"GET\",\n    url: global.get(\"wwURL\") + \"ProcessValues?$filter=DateTime ge \"+ global.get(\"query_startDate\") +\" and DateTime le \"+ global.get(\"query_endDate\") + \"&RetrievalMode=Full&TagFilter=startswith(FQN,'\"+global.get(\"query_FQN\")+\"')\"\n}\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 180,
+        "y": 780,
+        "wires": [
+            [
+                "8205c165.ec8d3"
+            ]
+        ]
+    },
+    {
+        "id": "c4f0a248.5bfa8",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Next Page of Data",
+        "rules": [
+            {
+                "t": "set",
+                "p": "nextPage",
+                "pt": "flow",
+                "to": "payload[\"@odata.nextLink\"]",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 810,
+        "y": 780,
+        "wires": [
+            [
+                "be26625c.23d28"
+            ]
+        ]
+    },
+    {
+        "id": "5d2d4d8e.d9a0c4",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "ec053cbd.1ec3b"
+        ],
+        "x": 695,
+        "y": 840,
+        "wires": []
+    },
+    {
+        "id": "637797f5.f0f1f8",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "URL next 5k records",
+        "func": " var execution_counter = flow.get(\"execution_counter\");\n    execution_counter += 1;\n    flow.set(\"execution_counter\",execution_counter);\nmsg = {\n    headers:{\n       \"Authorization\":'Bearer ' + global.get(\"wwToken\"),\n    },\n    method:\"GET\",\n    url:flow.get(\"nextPage\")\n    //url:\"https://insight.connect.aveva.ai/api/Historian/v2/ProcessValues?$filter=DateTime%20ge%202016-02-17T10%3A30%3A00.000000Z%20and%20DateTime%20le%202016-02-21T10%3A28%3A50.00000Z&RetrievalMode=Full&TagFilter=startswith%28FQN%2C%27WideData%27%29&$skiptoken=Kj1zHGogji7vja/yzyYjmeGKseLGYqpXrFvvWzQYo3CG6X1MHa0BdD1T3KS0iGSM\"\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 500,
+        "y": 1000,
+        "wires": [
+            [
+                "5d4f1bc3.ecfc44"
+            ]
+        ]
+    },
+    {
+        "id": "df9df7c3.aec718",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Transform pgs",
+        "func": "if (typeof msg.payload[\"@odata.nextLink\"] !== 'undefined')\n{\n    flow.set(\"nextPage\",msg.payload[\"@odata.nextLink\"]);\n    //var execution_counter = flow.get(\"execution_counter\");\n    //execution_counter += 1;\n    //flow.set(\"execution_counter\",execution_counter);\n    \n}\nelse{\n    flow.set(\"nextPage\",\"None\");\n    \n}\nvar add = flow.get(\"add\");\nvar value = [];\nvar entity = [];\nvar DateTime = [];\nvar signal = [];\nvar store = [];\n//var entity2 = [];\nvar combine = \"\";\n//var counter;\n//var e_counter = flow.get(\"counter\");\n//var last_entity = flow.get(\"last_entity\");\nvar queryFQN = global.get(\"query_FQN\");\nfor (var i = 0; i < msg.payload.value.length ; i++)\n{\n    \n    if(msg.payload.value[i].FQN !=queryFQN + '.entity')\n    {\n        DateTime += msg.payload.value[i].DateTime + \",\";\n        signal += msg.payload.value[i].FQN.split('.').pop() + \",\";\n        value += msg.payload.value[i].Value + \",\";\n    }\n    else\n    {\n        entity = msg.payload.value[i].Text + \",\";\n    }\n}\nDateTime = DateTime.slice(0,-1).split(\",\");\n//entity2 = entity2.slice(0,-1).split(\",\");\nentity = entity.slice(0,-1).split(\",\");\nsignal = signal.slice(0,-1).split(\",\");\nvalue = value.slice(0,-1).split(\",\");\n\nvar lst_dt = DateTime.slice(-1).pop();\nflow.set(\"last_DateTime\",lst_dt);\n\nfor (i = 0; i < signal.length; i++)\n{\n    store += entity[0] + \",\";\n}\n\nentity = store.slice(0,-1).split(\",\");\nmsg.entity = entity;\nmsg.signal = signal;\n/*\nif(e_counter <= 0)\n{\nfor (var c = 0;c < signal.length;c++)\n{\n    for (var d = c+1; d < signal.length;d++)\n    {\n        if(signal[c]=== signal[d]){\n            isMatch = true;\n            break;\n        }\n    }\n    if (isMatch)\n    {\n        counter = d;\n        break;\n        \n   }\n}\n\nfor (i = 0; i < entity2.length; i++)\n{\n    entity += Array((counter)).fill(entity2[i]) + ',';\n}\n}\n\nelse\n{\nentity += Array((e_counter)).fill(last_entity) + ',';\nmsg.entity_trial = entity;\nfor (var c = e_counter;c < signal.length;c++)\n{\n    for (var d = c+1; d < signal.length;d++)\n    {\n        if(signal[c]=== signal[d]){\n            isMatch = true;\n            break;\n        }\n    }\n    if (isMatch)\n    {\n        counter = d-e_counter;\n        break;\n        \n   }\n}\n\nfor (i = 0; i < entity2.length; i++)\n{\n    entity += Array((counter)).fill(entity2[i]) + ',';\n}\n}\nmsg.entity2 = entity2;\nmsg.counter = counter;\nflow.set(\"counter\",(entity.length - signal.length));\nflow.set(\"last_entity\",entity.slice(-1).pop());\n*/\nfor (i = 0; i < value.length ; i++)\n{\n    \n    combine += DateTime[i]+ \",\" +entity[i]+ \",\" + signal[i]+ \",\" +value[i]+ \"\\n\";\n}\nadd += \"\\n\" + combine;\n\nflow.set(\"add\",add);\n\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1100,
+        "y": 1000,
+        "wires": [
+            [
+                "a9c21a12.70eb48"
+            ]
+        ]
+    },
+    {
+        "id": "5d4f1bc3.ecfc44",
+        "type": "http request",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Get Data",
+        "method": "use",
+        "ret": "txt",
+        "paytoqs": false,
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "authType": "",
+        "x": 680,
+        "y": 1000,
+        "wires": [
+            [
+                "c4b1868d.01a658",
+                "50fd3270.2a8fbc"
+            ]
+        ]
+    },
+    {
+        "id": "c4b1868d.01a658",
+        "type": "json",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "nxtpg to JSON",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 900,
+        "y": 1000,
+        "wires": [
+            [
+                "df9df7c3.aec718"
+            ]
+        ]
+    },
+    {
+        "id": "2a76cf67.e5c6f",
+        "type": "link in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "a9c21a12.70eb48"
+        ],
+        "x": 35,
+        "y": 1000,
+        "wires": [
+            [
+                "69213dfb.8df374"
+            ]
+        ]
+    },
+    {
+        "id": "8920b2d0.45f7e",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "14bfd070.aa317"
+        ],
+        "x": 1195,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "faa8e0b4.02f04",
+        "type": "switch",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "All records?",
+        "property": "nextPage",
+        "propertyType": "flow",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "None",
+                "vt": "str"
+            },
+            {
+                "t": "else"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 330,
+        "y": 860,
+        "wires": [
+            [
+                "d7dde8f4.deba18"
+            ],
+            [
+                "637797f5.f0f1f8"
+            ]
+        ]
+    },
+    {
+        "id": "1fdd6e5.e97ce92",
+        "type": "link in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "9b6f9c5a.80e25"
+        ],
+        "x": 35,
+        "y": 780,
+        "wires": [
+            [
+                "5ec6c5e3.0906cc"
+            ]
+        ]
+    },
+    {
+        "id": "2a6dbfa3.477af",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Get data from WW insights",
+        "info": "",
+        "x": 110,
+        "y": 720,
+        "wires": []
+    },
+    {
+        "id": "8aa2a342.db1ce",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Set ui message",
+        "func": "if (flow.state == 'PAUSE' && typeof flow.saveURL !== 'undefined')\n{\n    msg.issue = \"Flow paused. Ingesting \" +flow.get(\"execution_counter\") + \" pages into Falkonry; The last data point pushed into the system was at\" +flow.get(\"last_DateTime\")+ \". Will begin ingesting from next page once flow is resumed\";\n}\nelse\n{\nmsg.issue = \"Obtained records till page\"+flow.get(\"execution_counter\")+ \" from Wonderware Insights. The last data point pushed into the system was at\" +flow.get(\"last_DateTime\") +\". Pushing data into Falkonry\";\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1620,
+        "y": 880,
+        "wires": [
+            [
+                "da2f4604.a359c8"
+            ]
+        ]
+    },
+    {
+        "id": "a9c21a12.70eb48",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "2a76cf67.e5c6f"
+        ],
+        "x": 1235,
+        "y": 1000,
+        "wires": []
+    },
+    {
+        "id": "14bfd070.aa317",
+        "type": "link in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "8920b2d0.45f7e"
+        ],
+        "x": 35,
+        "y": 860,
+        "wires": [
+            [
+                "faa8e0b4.02f04"
+            ]
+        ]
+    },
+    {
+        "id": "19ed714a.07dd9f",
+        "type": "debug",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "error",
+        "targetType": "msg",
+        "x": 420,
+        "y": 1140,
+        "wires": []
+    },
+    {
+        "id": "7eadb6e8.7f7518",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Set ui message",
+        "func": "msg.issue = flow.get(\"issue\");\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1640,
+        "y": 320,
+        "wires": [
+            [
+                "f3156892.e89d28"
+            ]
+        ]
+    },
+    {
+        "id": "50fd3270.2a8fbc",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Set ui message",
+        "func": "if(msg.statusCode === 200)\n{\nmsg.payload = \"\";\nmsg.issue = \"Collected records from page \" + flow.get(\"execution_counter\") + \". Getting records from next page if it exists\";\n\n}\nelse{\nvar dt = new Date();\n    if (typeof msg.payload.message !== 'undefined')\n    {\n        msg.issue =  dt + \"\\n\" + \"Error in connecting to Wonderware Insights; \" + \" Status Code\"+ msg.statusCode + \". \\n Error Message :\"+ msg.payload.message;\n        flow.set(\"mid_fail_flag\",true);\n    }\n    else\n    {\n        msg.issue =  dt + \"\\n\" + \"Error in connecting to Wonderware Insights; \" + \" Status Code: \"+ msg.statusCode + \". \\n Error Message :\" + msg.payload;\n        flow.set(\"mid_fail_flag\",true);\n    }\n    msg.payload = msg.issue;\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1620,
+        "y": 1100,
+        "wires": [
+            [
+                "da2f4604.a359c8",
+                "f3156892.e89d28"
+            ]
+        ]
+    },
+    {
+        "id": "69213dfb.8df374",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "handle pause",
+        "func": "var state = flow.get(\"state\");\nvar nextPg = flow.get(\"nextPage\");\nif (state == \"PAUSE\")\n{\n    flow.set(\"saveURL\",nextPg);\n    flow.set(\"nextPage\",\"None\");\n    return msg;\n}\nelse\n{\nreturn msg;\n}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 160,
+        "y": 1000,
+        "wires": [
+            [
+                "faa8e0b4.02f04"
+            ]
+        ]
+    },
+    {
+        "id": "d7dde8f4.deba18",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Combine all pgs",
+        "func": "msg.payload = flow.get(\"combine\") + flow.get(\"add\");\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 520,
+        "y": 860,
+        "wires": [
+            [
+                "8aa2a342.db1ce",
+                "5d2d4d8e.d9a0c4",
+                "fdf93c9d.57d8b"
+            ]
+        ]
+    },
+    {
+        "id": "82662079.b2ee5",
+        "type": "ui_button",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "group": "2a8dd642.dd1bda",
+        "order": 3,
+        "width": 4,
+        "height": 1,
+        "passthru": true,
+        "label": "RESUME",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "orange",
+        "icon": "",
+        "payload": "RESUME",
+        "payloadType": "str",
+        "topic": "",
+        "x": 960,
+        "y": 60,
+        "wires": [
+            [
+                "7b597d22.ed8e94",
+                "ac2ae79c.9f0668"
+            ]
+        ]
+    },
+    {
+        "id": "680b5c7b.f970b4",
+        "type": "ui_button",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "group": "2a8dd642.dd1bda",
+        "order": 2,
+        "width": 4,
+        "height": 1,
+        "passthru": true,
+        "label": "PAUSE",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "orange",
+        "icon": "",
+        "payload": "PAUSE",
+        "payloadType": "str",
+        "topic": "",
+        "x": 960,
+        "y": 120,
+        "wires": [
+            [
+                "7b597d22.ed8e94"
+            ]
+        ]
+    },
+    {
+        "id": "7b597d22.ed8e94",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "State",
+        "rules": [
+            {
+                "t": "set",
+                "p": "state",
+                "pt": "flow",
+                "to": "payload",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1150,
+        "y": 120,
+        "wires": [
+            [
+                "9931288.11eb2d8"
+            ]
+        ]
+    },
+    {
+        "id": "6cfeb6ff.ec3d68",
+        "type": "inject",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 800,
+        "y": 80,
+        "wires": [
+            [
+                "82662079.b2ee5",
+                "680b5c7b.f970b4"
+            ]
+        ]
+    },
+    {
+        "id": "c1ff39ac.eff438",
+        "type": "inject",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Init",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "x": 90,
+        "y": 60,
+        "wires": [
+            [
+                "e5ec3859.43c5d8"
+            ]
+        ]
+    },
+    {
+        "id": "7d6fa1a1.5f80e",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Progress Tab Default",
+        "rules": [
+            {
+                "t": "set",
+                "p": "issue",
+                "pt": "msg",
+                "to": "Submit configs manually or use configurations.yaml file to Begin!",
+                "tot": "str"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 500,
+        "y": 60,
+        "wires": [
+            [
+                "1cf36541.aa52cb"
+            ]
+        ]
+    },
+    {
+        "id": "1cf36541.aa52cb",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "4e498c96.580ea4",
+            "37d0412d.a96a8e"
+        ],
+        "x": 635,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "a68b898e.886fb8",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Progress Tab Reset on deploy",
+        "info": "",
+        "x": 140,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "f3156892.e89d28",
+        "type": "file",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Log File",
+        "filename": "/Users/suhas/Desktop/wwi-logs.txt",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1960,
+        "y": 740,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b6f8f9c7.156b58",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "e8e4d285.7333b"
+        ],
+        "x": 815,
+        "y": 340,
+        "wires": []
+    },
+    {
+        "id": "4014640c.b39a9c",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Reset_flags_aft_complete_job",
+        "func": "var action = flow.get(\"action\");\nvar mid_fail_flag = flow.get(\"mid_fail_flag\");\nif (action == 'COMPLETE_JOB' && (msg.statusCode === 201 || msg.statusCode === 200))\n{\n    flow.set('newDatastream_flag',true);\n    flow.set('action',\"CREATE_JOB\");\n}\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1370,
+        "y": 560,
+        "wires": [
+            [
+                "d60e800b.6011d"
+            ]
+        ]
+    },
+    {
+        "id": "d60e800b.6011d",
+        "type": "debug",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 1590,
+        "y": 560,
+        "wires": []
+    },
+    {
+        "id": "655d0ddf.bfa374",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Passing message",
+        "func": "if (msg.statusCode == 201 || msg.statusCode == 200)\n{\n    return msg;\n}\nelse {return null;}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1250,
+        "y": 660,
+        "wires": [
+            [
+                "b6226300.e27d1"
+            ]
+        ]
+    },
+    {
+        "id": "fdf93c9d.57d8b",
+        "type": "debug",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 710,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "9931288.11eb2d8",
+        "type": "debug",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "x": 1330,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "ac2ae79c.9f0668",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Dt change",
+        "rules": [
+            {
+                "t": "set",
+                "p": "query_startDate",
+                "pt": "global",
+                "to": "last_DateTime",
+                "tot": "flow"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1140,
+        "y": 40,
+        "wires": [
+            [
+                "4a928d1a.fe1924"
+            ]
+        ]
+    },
+    {
+        "id": "4a928d1a.fe1924",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "9d043dd6.5e705",
+            "e8e4d285.7333b"
+        ],
+        "x": 1275,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "15924242.f4322e",
+        "type": "function",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Pass message",
+        "func": "if (msg.statusCode == 201 || msg.statusCode == 200)\n{\n    return msg;\n}\nelse {return null;}",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 1160,
+        "y": 240,
+        "wires": [
+            [
+                "f9dee448.428a28"
+            ]
+        ]
+    },
+    {
+        "id": "d59b6b7c.44bc18",
+        "type": "catch",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "scope": [
+            "65c82700.cb9528",
+            "1180434f.7786bd",
+            "f0520e3a.1ba5e",
+            "d6fad854.187968",
+            "f9dee448.428a28",
+            "8205c165.ec8d3",
+            "11d316a7.1be669",
+            "5d4f1bc3.ecfc44",
+            "c4b1868d.01a658",
+            "4014640c.b39a9c",
+            "655d0ddf.bfa374",
+            "15924242.f4322e"
+        ],
+        "uncaught": false,
+        "x": 60,
+        "y": 1140,
+        "wires": [
+            [
+                "f47a6e68.f1d45"
+            ]
+        ]
+    },
+    {
+        "id": "f47a6e68.f1d45",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "rules": [
+            {
+                "t": "set",
+                "p": "issue",
+                "pt": "msg",
+                "to": "error",
+                "tot": "msg"
+            },
+            {
+                "t": "set",
+                "p": "payload",
+                "pt": "msg",
+                "to": "error",
+                "tot": "msg"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 240,
+        "y": 1140,
+        "wires": [
+            [
+                "19ed714a.07dd9f",
+                "55dae2e9.22137c"
+            ]
+        ]
+    },
+    {
+        "id": "55dae2e9.22137c",
+        "type": "link out",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "37d0412d.a96a8e"
+        ],
+        "x": 400,
+        "y": 1200,
+        "wires": []
+    },
+    {
+        "id": "37d0412d.a96a8e",
+        "type": "link in",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "links": [
+            "55dae2e9.22137c",
+            "1cf36541.aa52cb"
+        ],
+        "x": 1635,
+        "y": 980,
+        "wires": [
+            [
+                "f3156892.e89d28",
+                "da2f4604.a359c8"
+            ]
+        ]
+    },
+    {
+        "id": "bf9ec3bb.69042",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Handle state",
+        "info": "",
+        "x": 810,
+        "y": 20,
+        "wires": []
+    },
+    {
+        "id": "1ac3b526.0023bb",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Handle error",
+        "info": "",
+        "x": 70,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "e5ec3859.43c5d8",
+        "type": "ui_button",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "group": "2a8dd642.dd1bda",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "label": "CLEAR PROGRESS TAB",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "x": 270,
+        "y": 60,
+        "wires": [
+            [
+                "7d6fa1a1.5f80e"
+            ]
+        ]
+    },
+    {
+        "id": "5404525a.64609c",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Get Configs",
+        "info": "",
+        "x": 90,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "78c8eeed.883b",
+        "type": "change",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Reset DS flag",
+        "rules": [
+            {
+                "t": "set",
+                "p": "newDatastream_flag",
+                "pt": "flow",
+                "to": "true",
+                "tot": "bool"
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 1000,
+        "y": 1140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a348b147.eb6a2",
+        "type": "inject",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 840,
+        "y": 1140,
+        "wires": [
+            [
+                "78c8eeed.883b"
+            ]
+        ]
+    },
+    {
+        "id": "1de80c2b.6071a4",
+        "type": "comment",
+        "z": "e3fdcdd0.aa5f8",
+        "name": "Reset Datastream create flag",
+        "info": "",
+        "x": 880,
+        "y": 1100,
+        "wires": []
+    },
+    {
+        "id": "2a8dd642.dd1bda",
+        "type": "ui_group",
+        "z": "",
+        "name": "Progress Tab",
+        "tab": "be09ec59.cbaee",
+        "order": 2,
+        "disp": true,
+        "width": 8,
+        "collapse": true
+    },
+    {
+        "id": "d9501637.838748",
+        "type": "ui_group",
+        "z": "",
+        "name": "Get Configurations",
+        "tab": "be09ec59.cbaee",
+        "order": 1,
+        "disp": true,
+        "width": "10",
+        "collapse": false
+    },
+    {
+        "id": "be09ec59.cbaee",
+        "type": "ui_tab",
+        "z": "",
+        "name": "WWI Integration - LRS Ingest",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    }
+]

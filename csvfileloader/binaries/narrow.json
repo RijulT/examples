@@ -1,8 +1,0 @@
-{
-  "entityIdentifier": "Entity",
-  "timeIdentifier": "TimeString",
-  "timeFormat": "iso_8601",
-  "timeZone": "",
-  "signalIdentifier": "VarName",
-  "valueIdentifier": "VarValue"
-}

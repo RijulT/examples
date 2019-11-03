@@ -1,9 +1,0 @@
-{
-  "entityIdentifier": "entity",
-  "timeIdentifier": "time",
-  "timeFormat": "YYYY-MM-DD HH:mm:ss",
-  "timeZone": "Americas/Chicago",
-  "signalIdentifier": "signal",
-  "valueIdentifier": "value",
-  "batchIdentifier": "batchid"
-}

@@ -10,10 +10,10 @@ INVOKATION
 ----------
 Binary distribution can be found in https://github.com/Falkonry/examples/tree/master/csvfileloader/binaries.
 
-To invoke, change to the directly conataing the binary distribution files and type:
+To invoke, change to the directly containing the binary distribution files and type:
 dotnet FalkonryCSVLoader.dll --help
 
-This will explain what parameters are expected similarly as shown here:
+This will product an output similar to that shown here, explaining the various parameters that are supported:
 
 FalkonryCSVLoader 0.5.0
 Falkonry, Inc
@@ -57,7 +57,7 @@ Load CSV files to a Falkonry datastream (must specify either a stream name 'snam
 
 CONFIGURATION
 --------------
-The binary distributions includes example .json configuration files that need to be modifed according to your needs.  These files define the charateristics of the data in the CSV files and hence how they will the be imported into the datastream.  The basic structure of these files defines the mappings of columns in the CSV file with the datastream parameters suchs as Entity, Signal, TimeZone, etc.
+The binary distributions includes examples of \*.json configuration files that need to be modifed according to your needs.  These files define the charateristics of the data in the CSV files and hence how they will the be imported into the datastream.  The basic structure of these files defines the mappings of columns in the CSV file with the datastream parameters suchs as Entity, Signal, TimeZone, Batch, etc.
 
 Example (narrow_batch.json):
 

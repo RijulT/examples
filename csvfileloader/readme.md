@@ -4,7 +4,7 @@ This utility application can load multiple CSV files into a Falknroy datastream 
 
 REQUIREMENTS
 ------------
-The utility is written in .NET core and hence supports Windows, Linux and MacOS operating systems. To run the utility one needs to first install .NET core runtime using one of the methods described here. Currently the application supports version 2.2. Make sure to click on the "All .NET Core Downloads" button and select the latest 2.2.* runtime.
+The utility is written in .NET core and hence supports Windows, Linux and MacOS operating systems. To run the utility one needs to first install .NET core runtime using one of the methods described in https://dotnet.microsoft.com/download. Currently the application supports version 2.2. Make sure to click on the "All .NET Core Downloads" button and select the latest 2.2.* runtime.
 
 INVOKATION
 ----------
@@ -12,7 +12,7 @@ INVOKATION
 
 SOURCE
 ------
-Source for this utility can be found here
+Source for this utility can be found in 
 
 ROADMAP
 -------

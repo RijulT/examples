@@ -65,7 +65,7 @@ Example (narrow_batch.json):
   "batchIdentifier":"batch",
   "entityIdentifier": "entity",
   "timeIdentifier": "time",
-  "timeFormat": "M/D/YYYY H\:m\:ss",
+  "timeFormat": "M/D/YYYY H:m:ss",
   "timeZone": "Europe/Paris"
 }
 

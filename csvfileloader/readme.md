@@ -1,6 +1,6 @@
 DESCRIPTION
 -----------
-This utility application can load multiple CSV files into a Falknroy datastream starting from a root directory and navigating down to all the leave files. Files to be loaded can be filtered by specifying a file filter such as 'the\*files.csv'. The utility will create a datastream if one does not exist that matches the name passed to it.
+This utility application can load multiple CSV files into a Falkonry datastream starting from a root directory and navigating down to all the leave files. Files to be loaded can be filtered by specifying a file filter such as 'the\*files.csv'. The utility will create a datastream if one does not exist that matches the name passed to it.
 
 REQUIREMENTS
 ------------

@@ -6,8 +6,8 @@ REQUIREMENTS
 ------------
 The utility is written in .NET core and hence supports Windows, Linux and MacOS operating systems. To run the utility one needs to first install .NET core runtime using one of the methods described in https://dotnet.microsoft.com/download. Currently the application supports version 2.2. Make sure to click on the "All .NET Core Downloads" button and select the latest 2.2.* runtime.
 
-INVOKATION
-----------
+RUNNING UTILITY
+---------------
 Binary distribution can be found in https://minhaskamal.github.io/DownGit/#/home?url=https:%2F%2Fgithub.com%2FFalkonry%2Fexamples%2Ftree%2Fmaster%2Fcsvfileloader%2Fbinaries.
 
 To invoke, change to the directly containing the binary distribution files and type:
@@ -69,6 +69,12 @@ Example (narrow_batch.json):
   "timeZone": "Europe/Paris"
 }
 
+TROUBLESHOOTING AND LOGGING
+---------------------------
+The utility produces log files in a Log subdirectory.  It creates one file per day.  The files contain all responses from the API as well as any exception messages.  Note that the utility will continue to send files even if previous files reported failures.  Hence is a good idea to look in the log files to determine which files did not get accepted by the API.
+
+In addition, the utility creates a Responses subfolder where it stores a "Responses.txt" file containing the responses from the last program execution.
+
 SOURCE
 ------
 Source for this utility can be found in https://github.com/mariofalkonry/com.falkonry.api.client
@@ -76,5 +82,5 @@ Source for this utility can be found in https://github.com/mariofalkonry/com.fal
 ROADMAP
 -------
 Currently the applications does not support Mappings for signals.  This will be in a future relase.
-Additionally it does not support ";" separators or "," for decimal points.  This will have to wait for Falkonry's web api support.  
+Additionally it does not support ";" separators or "," for decimal points.  This will have to wait for Falkonry's web API support.  
  

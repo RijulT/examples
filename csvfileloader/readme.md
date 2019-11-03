@@ -1,3 +1,5 @@
+**FALKONRY CSV FILE LOADER**
+
 DESCRIPTION
 -----------
 This utility application can load multiple CSV files into a Falkonry datastream starting from a root directory and navigating down to all the leave files. Files to be loaded can be filtered by specifying a file filter such as 'the\*files.csv'. The utility will create a datastream if one does not exist that matches the name passed to it.
@@ -75,12 +77,17 @@ The utility produces log files in a Log subdirectory.  It creates one file per d
 
 In addition, the utility creates a Responses subfolder where it stores a "Responses.txt" file containing the responses from the last program execution.
 
+The utility does not wait for the INGEST or DIGEST jobs to complete.  Errors experienced in INGEST and DIGEST jobs are only seen using LRS's UI and log monitors.
+
 SOURCE
 ------
 Source for this utility can be found in https://github.com/mariofalkonry/com.falkonry.api.client
 
+LIMITATIONS
+-----------
+The utility only handles ingestion of historical files for model training.
+
 ROADMAP
 -------
 Currently the applications does not support Mappings for signals.  This will be in a future relase.
-Additionally it does not support ";" separators or "," for decimal points.  This will have to wait for Falkonry's web API support.  
- 
+Additionally it does not support ";" separators or "," for decimal points.  This will have to wait for Falkonry's web API to support these.

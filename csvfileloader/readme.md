@@ -16,7 +16,7 @@ Binary distribution can be found in https://minhaskamal.github.io/DownGit/#/home
 To invoke, change to the directly containing the binary distribution files and type:
 dotnet FalkonryCSVLoader.dll --help
 
-This will product an output similar to that shown here, explaining the various parameters that are supported:
+This will produce an output similar to that shown here, explaining the various parameters that are supported:
 
 FalkonryCSVLoader 0.5.0
 Falkonry, Inc

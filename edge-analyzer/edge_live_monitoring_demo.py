@@ -347,6 +347,17 @@ class FalkonryInputProcessor(threading.Thread):
         self.inputJobId = self.__create_edge_input_job()
         self.__map_explanation_scores_to_signals()
 
+    def print_model_info(self):
+        """
+        Prints the current Edge Model information in json format to console
+        """
+        http_headers = {'content-type': 'application/json'}
+        inputResponse = requests.get(F_EDGE_URL + 'api/1.1/model', auth=None,
+                                      verify=False, headers=http_headers)
+        Utils.info("InputResponse : " + str(inputResponse))
+        model = inputResponse.json()
+        Utils.info("Model Info :\n" + json.dumps(model, indent=2))
+
     def __create_edge_input_job(self):
         """
         Start Edge container and visit http[s]://edge-url:port/swagger.app for Edge API.
@@ -368,9 +379,9 @@ class FalkonryInputProcessor(threading.Thread):
             "timeFormat": self.timeFormat,  # "micros",
             "timeZone": self.timeZone  # example "Europe/Stockholm",
         }
-        if self.entityIx:
+        if self.entityIx is not None:
             data["entityIdentifier"] = self.columnsInfo.column(self.entityIx)
-        if self.batchIx:
+        if self.batchIx is not None:
             data["batchIdentifier"] = self.columnsInfo.column(self.batchIx)
 
         Utils.info("Create_Edge_input_job  :" + str(data))
@@ -561,15 +572,15 @@ def setup_parser():
     parser.add_argument("-o", "--output_file", dest='output', required=True,
                         help="File name to write Falkonry Edge Analyzer output")
     parser.add_argument("-t", "--time_column", dest='time', type=int, required=True,
-                        help="Time column index starting with 1")
+                        help="Time column index starting with 0")
     parser.add_argument("-z", "--time_zone", dest='zone', required=True,
                         help="Time zone. Use the 'TZ database name OR UTC offset' from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones. If its not supported use one from supported list that matches the time zone.")
     parser.add_argument("-f", "--time_format", dest='format', required=True,
                         help="Timestamp format. See https://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html for format details.")
     parser.add_argument("-e", "--entity_column", dest='entity', type=int,
-                        help="Entity column index starting with 1")
+                        help="Entity column index starting with 0")
     parser.add_argument("-b", "--batch_column", dest='batch', type=int,
-                        help="Batch column index starting with 1")
+                        help="Batch column index starting with 0")
     parser.add_argument("-r", "--input_feed_rate", dest='rate', type=float, default=1000,
                         help="Number of records to send to edge per second.")
 
@@ -642,6 +653,7 @@ def main():
     input_processor = FalkonryInputProcessor(args)
     input_processor.name = "InputProcessor"
     input_processor.start()
+    input_processor.print_model_info()
     #
     # Start a thread to get assessment output from Falkonry
     #

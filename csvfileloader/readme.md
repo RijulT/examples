@@ -25,8 +25,9 @@ This will produce an output similar to that shown here, explaining the various p
 
 FalkonryCSVLoader 0.5.0
 Falkonry, Inc
-USAGE:
-Load CSV files to a Falkonry datastream (must specify either a stream name 'snam' or id 'sid'. Example invokation::
+```USAGE:
+Load CSV files to a Falkonry datastream (must specify either a stream name 'snam' or id 'sid'.
+Example invocation::
   dotnet FalkonryCSVLoader.dll --acct 1234567891011121314 --conf wide.json --snam CustomerX_ATypeMachines --root
   ~Documents/Project/CustomerX/Data --tok t00L0NgToShoW1NOn3L1n3 --uri https://app3.falkonry.ai/api/1.1
 
@@ -65,13 +66,13 @@ Load CSV files to a Falkonry datastream (must specify either a stream name 'snam
   --help         Display this help screen.
 
   --version      Display version information.
-
+```
 CONFIGURATION
 --------------
 The binary distributions includes examples of \*.json configuration files that need to be modifed according to your needs.  These files define the charateristics of the data in the CSV files and hence how they will the be imported into the datastream.  The basic structure of these files defines the mappings of columns in the CSV file with the datastream parameters suchs as Entity, Signal, TimeZone, Batch, etc.
 
+```
 Example (narrow_batch.json):
-
 {
   "batchIdentifier":"batch",
   "entityIdentifier": "entity",
@@ -79,7 +80,7 @@ Example (narrow_batch.json):
   "timeFormat": "M/D/YYYY H:m:ss",
   "timeZone": "Europe/Paris"
 }
-
+```
 TROUBLESHOOTING AND LOGGING
 ---------------------------
 The utility produces log files in a Log subdirectory.  It creates one file per day.  The files contain all responses from the API as well as any exception messages.  Note that the utility will continue to send files even if previous files reported failures.  Hence is a good idea to look in the log files to determine which files did not get accepted by the API.

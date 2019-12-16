@@ -16,7 +16,7 @@ The utility is written in .NET core and hence supports Windows, Linux and MacOS 
 
 RUNNING UTILITY
 ---------------
-Binary distribution can be found in https://minhaskamal.github.io/DownGit/#/home?url=https:%2F%2Fgithub.com%2FFalkonry%2Fexamples%2Ftree%2Fmaster%2Fcsvfileloader%2Fbinaries.
+Binary distribution can be downloaded from https://github.com/Falkonry/examples/raw/master/csvfileloader/binaries/FalkonryCSVLoader.zip.
 
 To invoke, change to the directly containing the binary distribution files and type:
 dotnet FalkonryCSVLoader.dll --help

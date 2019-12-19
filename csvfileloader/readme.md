@@ -117,11 +117,11 @@ USAGE EXAMPLES
   a. Root directory containing files to be sent is **C:\batches**.     
   b. Files are in narrow format. There is a single entity (Unit2) and is not specified in the files. 
      Data was collected in France (note: timezone does not have to be specified if format is ISO).  File fragment:  
-    time,batch,signal,value  
+    `time,batch,signal,value  
     2019-12-11T23:34:11.234150+01:00,BATCH1,Status,running  
     2019-12-11T09:12:21.241501+01:00,BATCH1,Flow,456.234  
     2019-12-14T13:04:11.000000+01:00,BATCH2,Position,50.4  
-    ...    
+    ...`    
   d. Configuration file **narrow_batch1.json** is located in **C:\user\example2**. Configuration file contents:  
   ```
   {

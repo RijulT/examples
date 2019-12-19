@@ -4,7 +4,9 @@ FALKONRY CSV FILE LOADER
 VERSIONS
 --------
 1.0 Initial Release - November 3, 2019
+
 1.0.1 Added Chunking - Dec 5, 2019
+
 1.0.2 Added tracking of files by jobid - Dec 18, 2019
 
 DESCRIPTION

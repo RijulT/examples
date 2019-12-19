@@ -84,6 +84,70 @@ Example (narrow_batch.json):
   "timeZone": "Europe/Paris"
 }
 ```
+USAGE EXAMPLES
+---------------
+##1. WIDE FORMAT    
+  Specifics:   
+  a. Root directory containing files to be sent is **C:\temp**.     
+  b. Files are in wide format and include an entity column. Data was collected in South Korea.  File fragment:  
+    ```
+    time,entity,signal1,signal2,signal3
+    11.12.2019 23:34:11.234150,pump1,2.1,3.42,stopped,0
+    11.12.2019 23:34:21.241501,pump2,56.3,234.4,running,1
+    11.14.2019 03:04:11.000000,valve1,100.3,0.5,open,1
+    ...
+    ```
+  c. Configuration file **wide_example1.json** is located in **C:\user\example1**. Configuration file contents:``
+  ```
+  {
+  "entityIdentifier":"entity",
+  "timeIdentifier":"time",
+  "timeFormat":"DD.MM.YYYY HH:mm:ss.SSSSSS", 
+  "timeZone":"Asia/Seoul"
+  }
+  ```
+  d. Directories have many '.csv' files and only wish to load the ones that have been cleaned (end in '-cleaned.csv').  
+  e. Files are large and bandwidth is slow.  Wish to send in small chunks of 16MB.  
+  f. Token is **AVERYLONGTOKEN**  
+  g. Account id is **1343546**  
+  h. DataStream name is **PLANT1**  
+  i. Usage:  
+    ```
+    dotnet FalkonryCSVLoader.dll -u https://myfalkonrylrs/api/1.1 -a 1343546 -n PLANT1 -c C:\user\example1\wide_example1.json 
+      -r C:\temp -f "\*-cleaned.csv" -k 16 -t AVERYLONGTOKEN
+    ```    
+##2. NARROW FORMAT WITH BATCH  
+  Specifics:  
+  a. Root directory containing files to be sent is **C:\batches**.     
+  b. Files are in narrow format. There is a single entity (Unit2) and is not specified in the files. 
+     Data was collected in France (note: timezoen not needed to be specified if format is ISO).  File fragment:
+    ```
+    time,batch,signal,value**
+    2019-12-11T23:34:11.234150+01:00,BATCH1,Status,running
+    2019-12-11T09:12:21.241501+01:00,BATCH1,Flow,456.234
+    2019-12-14T13:04:11.000000+01:00,BATCH2,Position,50.4
+    ...
+    ```  
+  d. Configuration file **narrow_batch1.json** is located in **C:\user\example2**. Configuration file contents:  
+  ```
+  {
+  "entityKey":"Unit2",
+  "batchIdentifier":"batch",
+  "timeIdentifier":"time",
+  "timeFormat":"iso_8061", 
+  "signalIdentifier":"signal",
+  "valueIdentifier":"value"
+  }
+  ```  
+  e. Token is **AVERYLONGANDBATCHYTOKEN**  
+  f. Account id is **1343546**  
+  g. DataStream id is **999666333**  
+  h. Usage:  
+    ```
+    dotnet FalkonryCSVLoader.dll -u https://myfalkonrylrs/api/1.1 -a 1343546 -i 999666333 -c C:\user\example2\narrow_batch1.json 
+      -r C:\batches -t AVERYLONGANDBATCHYTOKEN**
+    ```
+    
 TROUBLESHOOTING AND LOGGING
 ---------------------------
 The utility produces log files in a Log subdirectory.  It creates one file per day.  The files contain all responses from the API as well as any exception messages.  Note that the utility will continue to send files even if previous files reported failures.  Hence is a good idea to look in the log files to determine which files did not get accepted by the API.
@@ -104,55 +168,3 @@ ROADMAP
 -------
 Currently the applications does not support Mappings for signals.  This will be in a future relase.
 Additionally it does not support ";" separators or "," for decimal points.  This will have to wait for Falkonry's web API to support these.
-
-USAGE EXAMPLES
----------------
-1. **WIDE FORMAT**  
-  Specifics: 
-  a. Root directory containing files to be sent is **C:\temp**.   
-  b. Files are in wide format and include an entity column. Data was collected in South Korea.  File fragment:
-    **time,entity,signal1,signal2,signal3**
-    11.12.2019 23:34:11.234150,pump1,2.1,3.42,stopped,0
-    11.12.2019 23:34:21.241501,pump2,56.3,234.4,running,1
-    11.14.2019 03:04:11.000000,valve1,100.3,0.5,open,1
-    ...
-  c. Configuration file **wide_example1.json** is located in **C:\user\example1**. Configuration file contents:
-  **{
-  "entityIdentifier":"entity",
-  "timeIdentifier":"time",
-  "timeFormat":"DD.MM.YYYY HH:mm:ss.SSSSSS", 
-  "timeZone":"Asia/Seoul"
-  }**
-  d. Directories have many '.csv' files and only wish to load the ones that have been cleaned (end in '-cleaned.csv').
-  e. Files are large and bandwidth is slow.  Wish to send in small chunks of 16MB.
-  f. Token is **AVERYLONGTOKEN**
-  g. Account id is **1343546**
-  h. DataStream name is **PLANT1**
-  i. Usage:
-    **dotnet FalkonryCSVLoader.dll -u https://myfalkonrylrs/api/1.1 -a 1343546 -n PLANT1 -c C:\user\example1\wide_example1.json 
-      -r C:\temp -f "\*-cleaned.csv" -k 16 -t AVERYLONGTOKEN**  
-2. **NARROW FORMAT WITH BATCH**  
-  Specifics: 
-  a. Root directory containing files to be sent is **C:\batches**.   
-  b. Files are in narrow format. There is a single entity (Unit2) and is not specified in the files. 
-     Data was collected in France (note: timezoen not needed to be specified if format is ISO).  File fragment:
-    **time,batch,signal,value**
-    2019-12-11T23:34:11.234150+01:00,BATCH1,Status,running
-    2019-12-11T09:12:21.241501+01:00,BATCH1,Flow,456.234
-    2019-12-14T13:04:11.000000+01:00,BATCH2,Position,50.4
-    ...
-  d. Configuration file **narrow_batch1.json** is located in **C:\user\example2**. Configuration file contents:
-  **{
-  "entityKey":"Unit2",
-  "batchIdentifier":"batch",
-  "timeIdentifier":"time",
-  "timeFormat":"iso_8061", 
-  "signalIdentifier":"signal",
-  "valueIdentifier":"value"
-  }**
-  e. Token is **AVERYLONGANDBATCHYTOKEN**
-  f. Account id is **1343546**
-  g. DataStream id is **999666333**
-  h. Usage:
-    **dotnet FalkonryCSVLoader.dll -u https://myfalkonrylrs/api/1.1 -a 1343546 -i 999666333 -c C:\user\example2\narrow_batch1.json 
-      -r C:\batches -t AVERYLONGANDBATCHYTOKEN**

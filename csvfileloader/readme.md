@@ -139,7 +139,8 @@ USAGE EXAMPLES
     dotnet FalkonryCSVLoader.dll -u https://myfalkonrylrs/api/1.1 -a 1343546 -i 999666333 -c C:\user\example2\narrow_batch1.json 
       -r C:\batches -t AVERYLONGANDBATCHYTOKEN**
     ```
-    
+
+
 TROUBLESHOOTING AND LOGGING
 ---------------------------
 The utility produces log files in a Log subdirectory.  It creates one file per day.  The files contain all responses from the API as well as any exception messages.  Note that the utility will continue to send files even if previous files reported failures.  Hence is a good idea to look in the log files to determine which files did not get accepted by the API.

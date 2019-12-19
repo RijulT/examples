@@ -84,7 +84,7 @@ Example (narrow_batch.json):
 ```
 USAGE EXAMPLES
 ---------------
-## 1. WIDE FORMAT    
+### 1. WIDE FORMAT    
   a. Root directory containing files to be sent is **C:\temp**.     
   b. Files are in wide format and include an entity column. Data was collected in South Korea.  File fragment:    
     `time,entity,signal1,signal2,signal3`   
@@ -111,7 +111,7 @@ USAGE EXAMPLES
     dotnet FalkonryCSVLoader.dll -u https://myfalkonrylrs/api/1.1 -a 1343546 -n PLANT1 -c C:\user\example1\wide_example1.json 
       -r C:\temp -f "\*-cleaned.csv" -k 16 -t AVERYLONGTOKEN
     ```    
-## 2. NARROW FORMAT WITH BATCH  
+### 2. NARROW FORMAT WITH BATCH  
   a. Root directory containing files to be sent is **C:\batches**.     
   b. Files are in narrow format. There is a single entity (Unit2) and is not specified in the files. 
      Data was collected in France (note: timezone does not have to be specified if format is ISO).  File fragment:  

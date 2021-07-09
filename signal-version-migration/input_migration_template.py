@@ -55,7 +55,7 @@ def parquetTransfromUploadInput(job):
             #     a = (filepath)
             #     logging.info("Uploaded "+os.path.basename(filepath))
             print(key)
-            s3.Bucket(bucket).upload_file(pfile, key+ signalList[i]['name']+"-\-"+str(count)+".snappy.parquet")
+            s3.Bucket(bucket).upload_file(pfile, key+ signalList[i]['name']+"-|-"+str(count)+".snappy.parquet")
             count+=1
     logging.info("Done transforming and uploading job "+ job['spec']['destinationPath'])
             
@@ -105,7 +105,7 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
     logging.info("Begin Migrating model "+flowName)
     template = """ [
                 {% for key, value in dataMap.items() %}
-                    {% set list = contextMap.fileName.split('-\-') %} 
+                    {% set list = contextMap.fileName.split('-|-') %} 
                     {% if (key =='value') %}
                     { "sourceName": "{{ dataMap.thing }}_{{list[0]}}", "time": "{{ dataMap.time }}",  "value": "{{ value }}"  }
                     {% if not loop.last %}

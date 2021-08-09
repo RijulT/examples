@@ -34,10 +34,17 @@ def migrate(accountID,datastreamID,urlPrefix, auth):
     
     timeUpdateLink = urlPrefix+"accounts/"+accountID+"/datastreams/"+datastreamID+"/"
     versionUpdateLink = urlPrefix+"accounts/"+accountID+"/datastreams/"+datastreamID+"/properties/"
+    currentDatastream = requests.get(timeUpdateLink,headers=headers)
+    currentJSON = currentDatastream.json()
+    timeFormat = currentJSON.get('baseTimeUnit','millis')
+    oldTimeUpdateJson = {"oldBaseTimeUnit":timeFormat}
+    oldTimeUpdateJson = str(oldTimeUpdateJson)
     timeUpdateJson = {"baseTimeUnit":"nanos"}
     timeUpdateJson = str(timeUpdateJson)
     versionUpdateJson= """ {"key":"version","value":"1.2"} """
- 
+
+
+    resp = requests.put(timeUpdateLink, headers=headers,data=oldTimeUpdateJson)
     resp = requests.put(timeUpdateLink, headers=headers,data=timeUpdateJson)
     resp = requests.post(versionUpdateLink, headers=headers, data=versionUpdateJson)
     

@@ -72,16 +72,15 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
             
             template = """ [
                     {% for key, value in dataMap.items() %}
-                        {% set list = contextMap.filePath.split('/') %} 
-                        {% if (key =='value' and list[7] == 'OUTPUTDATA') %}
+                        {% if (key =='value' and 'OUTPUTDATA' in contextMap.filePath) %}
                         {"sourceName": "Prediction_{{dataMap.thing}}", "time": "{{ (dataMap.time)|int }}",  "value": "{{value}}"  }
                         {% endif %}
                         
-                        {% if (key =='value' and list[7] == 'CONFIDENCEDATA') %}
+                        {% if (key =='value' and 'CONFIDENCEDATA' in contextMap.filePath) %}
                         { "sourceName": "Confidence_{{dataMap.thing}}", "time": "{{ (dataMap.time)|int }}",  "value": "{{ value}}"  }
                         {% endif %}
                         
-                        {% if (key =='score' and list[7] == 'EXPLANATIONDATA') %}
+                        {% if (key =='score' and 'EXPLANATIONDATA' in contextMap.filePath) %}
                         { "sourceName": "{{dataMap.thing}}-Explanation-{{dataMap.signalId}}", "time": "{{ (dataMap.time)|int }}",  "value": "{{value}}"  }
                         {% endif %} 
                         
@@ -89,16 +88,16 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
                     {% endfor %}  
                 ] """
             
-            
             signalObjList = job['spec']['inputList']
             timeFormat = job.get('baseTimeUnit','millis')
+            timeFormat = job.get('oldBaseTimeUnit',timeFormat)
             inputDict = {}
-            flowName = f"largetest{datastreamName}/{modelList[a][0]['name']}:{datastreamID}/{modelList[a][0]['id']}"
+            flowName = f"{datastreamName}/{modelList[a][0]['name']}:{datastreamID}/{modelList[a][0]['id']}"
             logging.info("Begin Migrating model "+flowName)
             #Create Flow
             dataDict = {
                 "name": flowName,
-                "description": "string2",
+                "description": "desc",
                 "flowType": "CLUESOURCE",
                 "spec": {
                     "connectionConfig": {
@@ -339,8 +338,8 @@ def send_to_sqs(event):
     
     
     
-# acccountID1 = "849393527846985728"
-# datastreamID1 = "849433632037003264"
-# auth1 = os.environ.get('AUTH')
-# appUrl = os.environ.get('APP_URL')
-# createOutputSignalConnection(acccountID1,datastreamID1, appUrl, auth1)
+acccountID1 = "849393527846985728"
+datastreamID1 = "849433632037003264"
+auth1 = os.environ.get('AUTH')
+appUrl = os.environ.get('APP_URL')
+createOutputSignalConnection(acccountID1,datastreamID1, appUrl, auth1)

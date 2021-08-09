@@ -1,24 +1,23 @@
 import requests
-import csv
 import json
-import pandas as pd
 import os
 import boto3
 import shutil
 from urllib.parse import urlparse
 import logging
-import time
 
-# logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
-# rootLogger = logging.getLogger()
-# logging.basicConfig(level=logging.INFO)
-# formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt="%Y-%m-%dT%H:%M:%S%z")
-# root = logging.getLogger()
-# root.setLevel(logging.INFO)
+logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
+rootLogger = logging.getLogger()
+logging.basicConfig(level=logging.INFO)
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s', datefmt="%Y-%m-%dT%H:%M:%S%z")
+root = logging.getLogger()
+root.setLevel(logging.INFO)
 
-# for h in root.handlers:
-#     h.setLevel(logging.INFO)
-#     h.setFormatter(formatter)
+for h in root.handlers:
+    h.setLevel(logging.INFO)
+    h.setFormatter(formatter)
+
+
 
 
 def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
@@ -59,6 +58,7 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
 
     datastreamName = currentJSON['name']
     timeFormat = currentJSON.get('baseTimeUnit','millis')
+    timeFormat = currentJSON.get('oldBaseTimeUnit',timeFormat)
     entityNameList = []
     flowName = f"{datastreamName}/{datastreamID}"
     logging.info("Begin Migrating model "+flowName)
@@ -67,12 +67,12 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
                 {% for key, value in dataMap.items() %}
                     {% set list = contextMap.filePath.split('signal=') %} 
                     {% set list = list[1].split('/') %} 
+                    
                     {% if (key =='value') %} """
                     
-        
     dataDict = {
             "name": flowName,
-            "description": "string2",
+            "description": "desc",
             "flowType": "CLUESOURCE",
             "spec": {
                 "connectionConfig": {
@@ -106,13 +106,13 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
             
             if(j==0):
                 template +="""
-                    {% if (list[0] =='"""
+                    {% if '"""
                 template += signalJSON[i][0]['key']
-                template +="""') %}
+                template +="""' in contextMap.filePath %}
                 """
                 template += """    { "sourceName": "{{ dataMap.thing }}_"""
                 template += signalJSON[i][0]['name']
-                template += """", "time": "{{ (dataMap.time*1000)|int }}",  "value": "{{ value }}"} 
+                template += """", "time": "{{ (dataMap.time)|int }}",  "value": "{{ value }}"} 
                     {% endif %} """
 
     
@@ -133,6 +133,7 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
             
     dataJSON['spec']['connectionConfig']['ruleSpec']['templateRule']['template'] = template         
     dataJSON = str(dataJSON)
+    print(template)
     postURL = urlPrefix+"accounts/"+acccountID+"/flows"
     logging.info("Flow Posting "+flowName)
     resp = requests.post(postURL, headers=headers, data=dataJSON)
@@ -182,7 +183,7 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
     shutil.rmtree('workDir')
     for i in range(connectedSources[0]['count']):
         url = urlPrefix+"accounts/"+str(acccountID)+"/connectedsources?limit=1&offset="+str(i)+"&connection=" + str(connectionID)
-        print(url)
+        print()
         connectedSource = requests.get(url, headers=headers).json()
         connSourceID = connectedSource[0]['id']
         connContext = connectedSource[0]['context']
@@ -201,12 +202,15 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
         payload = json.dumps(payload)
         payload = json.loads(payload)
         create_resp = requests.post(urlPrefix+"accounts/"+acccountID+"/signalcontexts", json = payload, headers=headers)
+        print(f"Signal Context Payload Resp = {create_resp.status_code}")
 
             
 def parquetFileConnector(accountID,job,connectionId,auth):
+    headers = {'Authorization': auth}
     signalList = job['spec']['signals']
     s3 = boto3.resource('s3')
     logging.info("Making Event")
+    url = f"https://dev.falkonry.ai:30080/api/1.2/accounts/{accountID}/inputcontexts/"
     for i in range(len(signalList)):
         o = urlparse(signalList[i]['dataPath'], allow_fragments=False)
         bucket = o.netloc
@@ -215,9 +219,39 @@ def parquetFileConnector(accountID,job,connectionId,auth):
         #Iterate through all files in given datapath
         for obj in my_bucket.objects.filter(Prefix=key):
             
-            file = obj.key            
+            file = obj.key  
 
+            
+            payload = {
+                "tenant": accountID,
+                "connection": connectionId,
+                "inputContextType": "FILE",
+                "fileDetails": {
+                    "fileType": "PARQUET",
+                    "filePath": f"/{bucket}/{file}",
+                    "fileSize": 1000
+                },
+                "status": "CREATED",
+                "inputContextStats": {
+                    "rowsCount": 0,
+                    "pointsCount": 0,
+                    "bytesCount": 0,
+                    "triggersCount": 0,
+                    "badPointsCount": 0,
+                    "emptyPointsCount": 0
+                },
+            }
+            
+            payload = str(payload)
+            response = requests.post(url, headers=headers, data=payload)
+            print("RESP",response.json()['id'])
+            
+            
+            
+                      
+            print("FILE: "+str(file))
             new_event = {
+            "file_id":response.json()['id'],
             "bucket": bucket,
             "object_key":file,
             "offset": 0,
@@ -239,11 +273,11 @@ def send_to_sqs(event):
     logging.info(f"Event sent")
                  
 #*Test              
-# acccountID1 = "849393527846985728"
-# datastreamID1 = "849433632037003264"
-# auth1 = os.environ.get("AUTH")
-# appUrl = os.environ.get("APP_URL")
-# createInputSignalConnection(acccountID1,datastreamID1, appUrl, auth1)
-# print("Finished")
+acccountID1 = "849393527846985728"
+datastreamID1 = "849433632037003264"
+auth1 = os.environ.get("AUTH")
+appUrl = os.environ.get("APP_URL")
+createInputSignalConnection(acccountID1,datastreamID1, appUrl, auth1)
+print("Finished")
 
 

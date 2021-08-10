@@ -1,5 +1,5 @@
-from input_migration import createInputSignalConnection 
-from output_migration import createOutputSignalConnection 
+from migration_services import createInputSignalConnection 
+from migration_services import createOutputSignalConnection 
 import requests
 import logging
 import requests
@@ -9,8 +9,6 @@ import sys
 import os
 from dotenv import load_dotenv
 import logging
-
-
 
 
 logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
@@ -26,32 +24,31 @@ for h in root.handlers:
     
 def migrate(accountID,datastreamID,urlPrefix, auth):
     headers = {"Authorization": auth}
+    url = f"{urlPrefix}accounts/{accountID}/datastreams/{datastreamID}/properties"
+    resp = requests.get(url,headers=headers)
+    isV2 = "1.2" == resp.json()['properties'][0]['value']
+    if(not isV2):
+        logging.info("Starting Input Signal Mirgation")
+        createInputSignalConnection(accountID, datastreamID,urlPrefix, auth)
+        logging.info("Starting Output Signal Mirgation")
+        createOutputSignalConnection(accountID, datastreamID,urlPrefix, auth)
+        
+        timeUpdateLink = urlPrefix+"accounts/"+accountID+"/datastreams/"+datastreamID+"/"
+        versionUpdateLink = urlPrefix+"accounts/"+accountID+"/datastreams/"+datastreamID+"/properties/"
+        currentDatastream = requests.get(timeUpdateLink,headers=headers)
+        currentJSON = currentDatastream.json()
+        timeFormat = currentJSON.get('baseTimeUnit','millis')
+        oldTimeUpdateJson = {"oldBaseTimeUnit":timeFormat}
+        oldTimeUpdateJson = str(oldTimeUpdateJson)
+        timeUpdateJson = {"baseTimeUnit":"nanos"}
+        timeUpdateJson = str(timeUpdateJson)
+        versionUpdateJson= """ {"key":"version","value":"1.2"} """
+        
+        
+        resp = requests.put(timeUpdateLink, headers=headers,data=oldTimeUpdateJson)
+        resp = requests.put(timeUpdateLink, headers=headers,data=timeUpdateJson)
+        resp = requests.post(versionUpdateLink, headers=headers, data=versionUpdateJson)
     
-    logging.info("Starting Input Signal Mirgation")
-    createInputSignalConnection(accountID, datastreamID,urlPrefix, auth)
-    logging.info("Starting Output Signal Mirgation")
-    createOutputSignalConnection(accountID, datastreamID,urlPrefix, auth)
-    
-    timeUpdateLink = urlPrefix+"accounts/"+accountID+"/datastreams/"+datastreamID+"/"
-    versionUpdateLink = urlPrefix+"accounts/"+accountID+"/datastreams/"+datastreamID+"/properties/"
-    currentDatastream = requests.get(timeUpdateLink,headers=headers)
-    currentJSON = currentDatastream.json()
-    timeFormat = currentJSON.get('baseTimeUnit','millis')
-    oldTimeUpdateJson = {"oldBaseTimeUnit":timeFormat}
-    oldTimeUpdateJson = str(oldTimeUpdateJson)
-    timeUpdateJson = {"baseTimeUnit":"nanos"}
-    timeUpdateJson = str(timeUpdateJson)
-    versionUpdateJson= """ {"key":"version","value":"1.2"} """
-
-
-    resp = requests.put(timeUpdateLink, headers=headers,data=oldTimeUpdateJson)
-    resp = requests.put(timeUpdateLink, headers=headers,data=timeUpdateJson)
-    resp = requests.post(versionUpdateLink, headers=headers, data=versionUpdateJson)
-    
-    
-acccountID1 = "849393527846985728"
-datastreamID1 = "862065678411948032"
-
 
 
 def migrateInputsFromCSV(csvFile, appUrl,getAll, auth):
@@ -72,8 +69,7 @@ def migrateInputsFromCSV(csvFile, appUrl,getAll, auth):
             accountID = row[tenIndex]
             dataID = row[dataIndex]
         
-            
-                # Check if row is valid
+            # Check if row is valid
             accountValid = ((200 == requests.get(appUrl + "accounts/" + accountID, headers=header).status_code) and (accountID!=""))
             if(not getAll):
                 dataValid = False
@@ -103,12 +99,9 @@ def migrateInputsFromCSV(csvFile, appUrl,getAll, auth):
 load_dotenv()
 auth1 = os.environ.get('AUTH')
 appUrl = os.environ.get('APP_URL')
-print(appUrl)
 file = sys.argv[1]
 try:
     getAllDatastreams = sys.argv[2] == 't'
 except:
     getAllDatastreams = False
-print(getAllDatastreams)
 migrateInputsFromCSV(file,appUrl,getAllDatastreams,auth1)
-#migrate(acccountID1,datastreamID1,appUrl, auth1)

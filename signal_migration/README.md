@@ -7,4 +7,4 @@ The CSV should be formatted with the headers 'Tenant' and 'Datastream' for proce
 
 
 CLI Example(Datastreams given in CSV): python3 .../total_migration.py .../SmallTest.csv.  
-CLI Example(Datastreams not given in CSV): python3 .../total_migration.py .../SmallTest.csv t
+CLI Example(Datastreams not given in CSV): python3 .../total_migration.py .../SmallTest.csv -t

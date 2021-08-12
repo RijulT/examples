@@ -1,5 +1,5 @@
-from migration_services import createInputSignalConnection 
-from migration_services import createOutputSignalConnection 
+from input_migration import createInputSignalConnection 
+from input_migration import createOutputSignalConnection 
 import requests
 import logging
 import requests
@@ -87,10 +87,13 @@ def migrateInputsFromCSV(csvFile, appUrl,getAll, auth):
             elif(getAll and accountValid):
                 url = appUrl+"accounts/"+accountID+"/datastreams"
                 number_of_datastreams = requests.get(url,headers=header).json()[0]['count']
-                for i in range(number_of_datastreams):
-                    newUrl = url + f"?offset={str(i)}&limit=1"
+                datastreamIDs = []
+                for i in range(int(number_of_datastreams/500+1)):
+                    newUrl = url + f"?offset={str(i*500)}&limit=500"
                     datastreamID = requests.get(newUrl,headers=header).json()[0]['id']
-                    migrate(accountID,datastreamID, appUrl, auth)
+                    datastreamIDs.extend(datastreamID)
+                for i in range(number_of_datastreams):
+                    migrate(accountID,datastreamIDs[i], appUrl, auth)
             else:
                     print("An exception occurred in CSV Line " + str(row))
         logging.warning("END")
@@ -101,7 +104,7 @@ auth1 = os.environ.get('AUTH')
 appUrl = os.environ.get('APP_URL')
 file = sys.argv[1]
 try:
-    getAllDatastreams = sys.argv[2] == 't'
+    getAllDatastreams = sys.argv[2] == '-t'
 except:
     getAllDatastreams = False
 migrateInputsFromCSV(file,appUrl,getAllDatastreams,auth1)

@@ -18,8 +18,6 @@ for h in root.handlers:
     h.setFormatter(formatter)
 
 
-
-
 def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
     try:
         os.mkdir('workDir')
@@ -40,16 +38,16 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
     numberOfEntities = numberOfEntitiesJSON[0]['count']
     
     signalJSON = []
-    for i in range(numberOfSignals):
-        count = str(i)
-        signalList = requests.get(datastreamLink+"/signals?limit=1&offset="+count,headers=headers)
-        signalJSON.append(signalList.json())
-        
+    for i in range(int(numberOfSignals/500)+1):
+        count = str(i*500)
+        signalList = requests.get(datastreamLink+"/signals?limit=500&offset="+count,headers=headers).json()
+        signalJSON.extend(signalList)
+                
     entityJSON = []
-    for i in range(numberOfEntities):
-        count = str(i)
-        entityList = requests.get(datastreamLink+"/entities?limit=1&offset="+count,headers=headers)
-        entityJSON.append(entityList.json())
+    for i in range(int(numberOfEntities/500+1)):
+        count = str(i*500)
+        entityList = requests.get(datastreamLink+"/entities?limit=500&offset="+count,headers=headers)
+        entityJSON.extend(entityList.json())
 
 
     currentDatastream = requests.get(datastreamLink,headers=headers)
@@ -92,25 +90,26 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
     dataJSON = json.dumps(dataDict)
     dataJSON = json.loads(dataJSON)
     for j in range(len(entityJSON)):
-        entityNameList.append(entityJSON[j][0]['name'])
+        print(entityJSON[j])
+        entityNameList.append(entityJSON[j]['name'])
         for i in range(len(signalJSON)):
 
-            signalKey = signalJSON[i][0]['key']
-            signalName= signalJSON[i][0]['name']
-            signalID= signalJSON[i][0]['id']
-            entityName= entityJSON[j][0]['name']
-            signalValueType = signalJSON[i][0]['valueType']
-            entityID= entityJSON[j][0]['id']
+            signalKey = signalJSON[i]['key']
+            signalName= signalJSON[i]['name']
+            signalID= signalJSON[i]['id']
+            entityName= entityJSON[j]['name']
+            signalValueType = signalJSON[i]['valueType']
+            entityID= entityJSON[j]['id']
             
             
             if(j==0):
                 template +="""
                     {% if '"""
-                template += signalJSON[i][0]['key']
+                template += signalJSON[i]['key']
                 template +="""' in contextMap.filePath %}
                 """
                 template += """    { "sourceName": "{{ dataMap.thing }}_"""
-                template += signalJSON[i][0]['name']
+                template += signalJSON[i]['name']
                 template += """", "time": "{{ (dataMap.time)|int }}",  "value": "{{ value }}"} 
                     {% endif %} """
 
@@ -169,7 +168,7 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
     job = json.loads(job)
     for i in range(len(signalJSON)):
 
-        obj = {"name":signalJSON[i][0]['name'], "valueType": signalJSON[i][0]['valueType'], "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/RAWDATA/"+datastreamID+"/signal="+signalJSON[i][0]['key']+"/"}
+        obj = {"name":signalJSON[i]['name'], "valueType": signalJSON[i]['valueType'], "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/RAWDATA/"+datastreamID+"/signal="+signalJSON[i]['key']+"/"}
         y = json.dumps(obj)
         y = json.loads(y)
         job['spec']['signals'].append(y)
@@ -177,13 +176,16 @@ def createInputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
 
     parquetFileConnector(acccountID,job,connectionID,auth)
     shutil.rmtree('workDir')
-    for i in range(connectedSources[0]['count']):
-        url = urlPrefix+"accounts/"+str(acccountID)+"/connectedsources?limit=1&offset="+str(i)+"&connection=" + str(connectionID)
+    connectedSourcesList = []
+    for i in range(int(connectedSources[0]['count']/500+1)):
+        url = urlPrefix+"accounts/"+str(acccountID)+"/connectedsources?limit=500&offset="+str(i*500)+"&connection=" + str(connectionID)
         connectedSource = requests.get(url, headers=headers).json()
-        connSourceID = connectedSource[0]['id']
-        connContext = connectedSource[0]['context']
-        connSourceTenant = connectedSource[0]['tenant']
-        sourceName = connectedSource[0]['sourceName']
+        connectedSourcesList.extend(connectedSource)
+    for i in range(connectedSources[0]['count']):
+        connSourceID = connectedSourcesList[i]['id']
+        connContext = connectedSourcesList[i]['context']
+        connSourceTenant = connectedSourcesList[i]['tenant']
+        sourceName = connectedSourcesList[i]['sourceName']
         currEntityName = inputDict[sourceName]['eName']
         currEntityID = inputDict[sourceName]['eID']
         currSignalName =inputDict[sourceName]['sName']
@@ -218,13 +220,11 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
     numberOfEntitiesJSON = numberOfEntities.json()
     numberOfEntities = numberOfEntitiesJSON[0]['count']
     allEntityList = []
-    entityList = []
     #Get all entities in datastream
-    for i in range(numberOfEntities):
-        count = str(i)
-        entityListJSON = requests.get(datastreamLink+"/entities?limit=1&offset="+count,headers=headers)
-        allEntityList.append(entityListJSON.json()[0])
-        entityList.append(entityListJSON.json()[0]['name'])
+    for i in range(int(numberOfEntities/500+1)):
+        count = str(i*500)
+        entityListJSON = requests.get(datastreamLink+"/entities?limit=500&offset="+count,headers=headers)
+        allEntityList.extend(entityListJSON.json())
     #Get all assessment in datastream
     for i in range(assessmentCount):
         url = f"{assessmentLink}?limit=1&offset={str(i)}"
@@ -238,14 +238,14 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
         url = f"{assessmentLink}/{str(assessmentIdList[i])}/models"
         numberOfModels = requests.get(url,headers=headers).json()[0]['count']
         modelList = []
-        for a in range (numberOfModels):
-            url = f"{assessmentLink}/{str(assessmentIdList[i])}/models?limit=1&offset={str(a)}"
-            modelList.append(requests.get(url,headers=headers).json())
+        for a in range (int(numberOfModels/500+1)):
+            url = f"{assessmentLink}/{str(assessmentIdList[i])}/models?limit=500&offset={str(a*500)}"
+            modelList.extend(requests.get(url,headers=headers).json())
         #Iterate through all models in assesment
         for a in range(numberOfModels):
             logging.info("Model Number "+ str(a)+" in Assesment-" +str(i))
             #Get job ID from model and get Job object from API
-            jobID = modelList[a][0]['job']
+            jobID = modelList[a]['job']
             url = f"{urlPrefix}accounts/{acccountID}/jobs/{jobID}"
             job = requests.get(url,headers=headers).json()
 
@@ -273,7 +273,7 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
             timeFormat = job.get('baseTimeUnit','millis')
             timeFormat = job.get('oldBaseTimeUnit',timeFormat)
             inputDict = {}
-            flowName = f"mybell{datastreamName}/{modelList[a][0]['name']}:{datastreamID}/{modelList[a][0]['id']}"
+            flowName = f"{datastreamName}/{modelList[a]['name']}:{datastreamID}/{modelList[a]['id']}"
             logging.info("Begin Migrating model "+flowName)
             #Create Flow
             dataDict = {
@@ -304,18 +304,18 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
             "jobType": "Test",
             "spec": {
                 "destinationPath": "",
-                "entities": entityList,
                 "signals": []
                 }
             }  
             jobN = json.dumps(jobJSON)
             jobN = json.loads(jobN)
-            for j in range(len(entityList)):
-                entityName = entityList[j]
+            for j in range(len(allEntityList)):
+                entityName = allEntityList[j]['name']
                 
                 obj = {"name": "Prediction_"+entityName, "valueType": "Categorical", "description": "Prediction"+entityName}
                 y = json.dumps(obj)
                 y = json.loads(y)
+                print(allEntityList, type(allEntityList))
                 inputDict["Prediction_"+entityName] = {'eName':entityName,'eID':allEntityList[j]['id'],'sName':"",'sID':""}
                 dataJSON['spec']['sourceMappings'].append(y)
                 
@@ -335,15 +335,15 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
                     inputDict[entityName+"-Explanation-"+signalName] = {'eName':entityName,'eID':allEntityList[j]['id'],'sName':signalObjList[l]['name'],'sID':signalObjList[l]['id']}
                     dataJSON['spec']['sourceMappings'].append(y)
                     
-            obj = {"name":"Prediction", "valueType": "categorical", "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/"+assessmentIdList[i]+"/OUTPUTDATA/"+modelList[a][0]['id']+'/'}
+            obj = {"name":"Prediction", "valueType": "categorical", "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/"+assessmentIdList[i]+"/OUTPUTDATA/"+modelList[a]['id']+'/'}
             y = json.dumps(obj)
             y = json.loads(y)
             jobN['spec']['signals'].append(y)
-            obj = {"name": "Confidence", "valueType": "Numeric", "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/"+assessmentIdList[i]+"/CONFIDENCEDATA/"+modelList[a][0]['id']+'/'}
+            obj = {"name": "Confidence", "valueType": "Numeric", "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/"+assessmentIdList[i]+"/CONFIDENCEDATA/"+modelList[a]['id']+'/'}
             y = json.dumps(obj)
             y = json.loads(y)
             jobN['spec']['signals'].append(y)
-            obj = {"name":"Explanation", "valueType": signalValueType, "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/"+assessmentIdList[i]+"/EXPLANATIONDATA/"+modelList[a][0]['id']+'/'}
+            obj = {"name":"Explanation", "valueType": signalValueType, "dataPath":"s3://falkonry-dev-backend/tercel/data/"+acccountID+"/"+datastreamID+"/"+assessmentIdList[i]+"/EXPLANATIONDATA/"+modelList[a]['id']+'/'}
             y = json.dumps(obj)
             y = json.loads(y)
             jobN['spec']['signals'].append(y)
@@ -379,7 +379,7 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
             
             jobN['spec']['destinationPath'] = dest
             logging.info("Job Created")
-            logging.info("MODELID "+ modelList[a][0]['id'])
+            logging.info("MODELID "+ modelList[a]['id'])
             #Transform and Upload Parquet files
             #parquetTransfromUploadOutput(jobN)
             parquetFileConnector(acccountID, jobN,connectionID,auth)
@@ -388,14 +388,16 @@ def createOutputSignalConnection(acccountID, datastreamID, urlPrefix,auth):
             url = urlPrefix+"accounts/"+acccountID+"/connectedsources?connection=" + str(connectionID)
             resp = requests.get(url, headers=headers)
             connectedSources = resp.json()
-            for b in range(connectedSources[0]['count']):
-                logging.info("create Payload")
-                url = urlPrefix+"accounts/"+str(acccountID)+"/connectedsources?limit=1&offset="+str(i)+"&connection=" + str(connectionID)
+            connectedSourcesList = []
+            for b in range(int(connectedSources[0]['count']/500+1)):
+                url = urlPrefix+"accounts/"+str(acccountID)+"/connectedsources?limit=500&offset="+str(i*500)+"&connection=" + str(connectionID)
                 connectedSource = requests.get(url, headers=headers).json()
-                connSourceID = connectedSource[0]['id']
-                connContext = connectedSource[0]['context']
-                connSourceTenant = connectedSource[0]['tenant']
-                sourceName = connectedSource[0]['sourceName']
+                connectedSourcesList.extend(connectedSource)
+            for b in range(connectedSources[0]['count']):
+                connSourceID = connectedSourcesList[b]['id']
+                connContext = connectedSourcesList[b]['context']
+                connSourceTenant = connectedSourcesList[b]['tenant']
+                sourceName = connectedSourcesList[b]['sourceName']
                 currEntityName = inputDict[sourceName]['eName']
                 currEntityID = inputDict[sourceName]['eID']
                 currSignalName = inputDict[sourceName]['sName']
@@ -483,12 +485,6 @@ def send_to_sqs(event):
     )
     logging.info(f"Event sent")
                  
-#*Test              
-acccountID1 = "849393527846985728"
-datastreamID1 = "849433632037003264"
-auth1 = os.environ.get("AUTH")
-appUrl = os.environ.get("APP_URL")
-createInputSignalConnection(acccountID1,datastreamID1, appUrl, auth1)
-createOutputSignalConnection(acccountID1,datastreamID1, appUrl, auth1)
+
 
 

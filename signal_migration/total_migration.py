@@ -1,5 +1,5 @@
-from input_migration import createInputSignalConnection 
-from input_migration import createOutputSignalConnection 
+from migration_services import createInputSignalConnection 
+from migration_services import createOutputSignalConnection 
 import requests
 import logging
 import requests
